@@ -5,7 +5,6 @@
 #include <time.h>
 #include <pthread.h>
 #include "SDL2/SDL.h"
-#include "SDL2/SDL_ttf.h"
 
 #include "z80.h"
 #include "zx80_keyboard.h"
@@ -73,31 +72,6 @@ void cls(HANDLE hConsole)
 
     // Put the cursor at its home coordinates.
     SetConsoleCursorPosition(hConsole, coordScreen);
-}
-
-void print_font(SDL_Renderer* renderer, TTF_Font* sans, int x, int y, char *text){
-
-    SDL_Color White = {255, 255, 255};  // this is the color in rgb format, maxing out all would give you the color white, and it will be your text's color
-
-    SDL_Surface* surfaceMessage = TTF_RenderText_Solid(sans, text, White); // as TTF_RenderText_Solid could only be used on SDL_Surface then you have to create the surface first
-
-    SDL_Texture* message = SDL_CreateTextureFromSurface(renderer, surfaceMessage); //now you can convert it into a texture
-
-    SDL_Rect Message_rect; //create a rect
-    Message_rect.x = x;  //controls the rect's x coordinate 
-    Message_rect.y = y; // controls the rect's y coordinte
-    Message_rect.w = surfaceMessage->w; // controls the width of the rect
-    Message_rect.h = surfaceMessage->h; // controls the height of the rect
-
-    //Mind you that (0,0) is on the top left of the window/screen, think a rect as the text's box, that way it would be very simple to understand
-
-    //Now since it's a texture, you have to put RenderCopy in your game loop area, the area where the whole code executes
-
-    SDL_RenderCopy(renderer, message, NULL, &Message_rect); //you put the renderer's name first, the Message, the crop size(you can ignore this if you don't want to dabble with cropping), and the rect which is the size and coordinate of your texture
-
-    //SDL_FreeSurface(surfaceMessage);
-    //SDL_DestroyTexture(message);
-    
 }
 
 #define BYTE_TO_BINARY_PATTERN "%c%c%c%c%c%c%c%c"
@@ -339,7 +313,7 @@ void run_thread(void *vargp)
                     
                     if(speed > 2)
                         speed = 2;
-                }                        
+                    }                        
                 if(key == (int)'9'){
                     mem_follow = !mem_follow;
                 }                        
