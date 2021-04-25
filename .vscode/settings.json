@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "sol1.h": "c",
+        "time.h": "c",
+        "sstream": "c"
+    }
+}
