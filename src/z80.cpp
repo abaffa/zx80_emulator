@@ -1,5 +1,6 @@
 #include "z80.h"
 #include "z80_opcodes.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <memory.h>
 #include <assert.h>
@@ -709,7 +710,7 @@ void z80_exec(struct z80* z80)
         default:{
             char str2[20];
             sprintf(str2,"unknown 0x%x",opcode);
-            debug_opcode(z80, str2,"");
+            debug_opcode(z80, str2, (char*)"");
              if(z80->TrapBadOps)
             printf
             (
@@ -762,7 +763,7 @@ void z80_exec(struct z80* z80)
                 if(J == INT_NONE) J = z80->IRequest;    /* Pending IRQ */
             }
 
-            if(J == INT_QUIT) return(z80->registers.PC); /* Exit if INT_QUIT */
+			if (J == INT_QUIT) return;// (z80->registers.PC); /* Exit if INT_QUIT */
             if(J != INT_NONE) IntZ80(z80, J);   /* Int-pt if needed */
         }
         

@@ -52,7 +52,7 @@ struct z80
     unsigned char TrapBadOps;    /* Set to 1 to warn of illegal opcodes */
     unsigned short Trap;          /* Set Trap to address to trace from   */
     unsigned char Trace;         /* Set Trace=1 to start tracing        */
-    void *User;         /* Arbitrary user data (ID,RAM*,etc.)  */
+    long User;         /* Arbitrary user data (ID,RAM*,etc.)  */
 
     char last_op_desc[512];
 
@@ -69,8 +69,11 @@ struct z80
 void z80_init(struct z80* z80);
 void z80_load(struct z80* z80, const char* buf, size_t size, unsigned short A);
 void z80_exec(struct z80* z80);
+void z80_reset(struct z80 *z80);
+
 unsigned char RdZ80(struct z80* z80, unsigned short Address);
 void WrZ80(struct z80* z80, unsigned short Address, unsigned char V);
 void IntZ80(struct z80* z80, unsigned short Vector);
+void JumpZ80(struct z80* z80, unsigned short PC);
 
 #endif

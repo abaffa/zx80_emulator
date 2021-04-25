@@ -1,4 +1,5 @@
 #include "zx80_screen.h"
+#include <string.h>
 #include <assert.h>
 
 

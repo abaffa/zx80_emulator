@@ -217,9 +217,9 @@ enum CodesED
 #define M_CALL(cpu)         \
     SET_LSB(J, OpZ80(z80, cpu->registers.PC)); \
     SET_MSB(J, OpZ80(z80, cpu->registers.PC)); \
-    WrZ80(z80, cpu->registers.SP - 1, MSB(cpu->registers.PC)); \ 
+    WrZ80(z80, cpu->registers.SP - 1, MSB(cpu->registers.PC)); \
     WrZ80(z80, cpu->registers.SP - 2, LSB(cpu->registers.PC)); \
-    cpu->registers.SP -= 2;\
+    cpu->registers.SP -= 2; \
     cpu->registers.PC = J; \
     JumpZ80(z80, J)
 
@@ -231,7 +231,7 @@ enum CodesED
 
 
 #define M_JR(cpu)         \
-    cpu->registers.PC += (signed char)OpZ80(cpu, cpu->registers.PC) + 1;  \
+    cpu->registers.PC += (signed char)RdZ80(cpu, cpu->registers.PC) + 1;  \
     JumpZ80(z80, cpu->registers.PC)
 
 #define M_JP(cpu)         \
