@@ -9,5 +9,5 @@ Project may be compiled using GCC/Mingw and Microsoft Visual C++
 
 ![Listing Program](imgs/example_code.jpg?raw=true "Listing Program")
 
-![Running Program](imgs/example_code.jpg?raw=true "Running Program")
+![Running Program](imgs/example_run.jpg?raw=true "Running Program")
 
