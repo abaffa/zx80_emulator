@@ -8,10 +8,19 @@
 
 #define DEBUG_OPCODE 1
 
+
+// Z80 OPCODES
 //https://clrhome.org/table/
-//https://k1.spdns.de/Develop/Projects/zxsp-osx/Info/nocash%20Sinclair%20ZX%20Specs.html
 //http://z80-heaven.wikidot.com/opcode-reference-chart
 
+//Z80 REGISTERS
+//https://link.springer.com/chapter/10.1007/978-1-349-06957-6_5
+//http://www.z80.info/z80arki.htm
+//https://onlinetoolz.net/bitshift#base=16&value=20&bits=8&steps=1&dir=l&type=rtc&carry=1&allsteps=1
+
+//ZX80 REF
+//https://k1.spdns.de/Develop/Projects/zxsp-osx/Info/nocash%20Sinclair%20ZX%20Specs.html
+//https://en.wikipedia.org/wiki/ZX80_character_set
 
 static const unsigned char ZSTable[256] =
 {
