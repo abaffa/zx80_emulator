@@ -16,7 +16,7 @@
 using namespace std::chrono;
 
 
-const char keyboard_map[ZX80_TOTAL_KEYS] = {
+const unsigned int keyboard_map[ZX80_TOTAL_KEYS] = {
 	SDLK_1, SDLK_2, SDLK_3, SDLK_4, SDLK_5, SDLK_6, SDLK_7, SDLK_8, SDLK_9, SDLK_0,
 	SDLK_q, SDLK_w, SDLK_e, SDLK_r, SDLK_t, SDLK_y, SDLK_u, SDLK_i, SDLK_o, SDLK_p,
 	SDLK_a, SDLK_s, SDLK_d, SDLK_f, SDLK_g, SDLK_h, SDLK_j, SDLK_k, SDLK_l, SDLK_RETURN,

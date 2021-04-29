@@ -5,7 +5,7 @@ static void zx80_keyboard_ensure_in_bounds(int key){
     assert(key >= 0 && key < ZX80_TOTAL_KEYS);
 }
 
-void zx80_keyboard_set_map(struct zx80_keyboard* keyboard, const char* map)
+void zx80_keyboard_set_map(struct zx80_keyboard* keyboard, const unsigned int* map)
 {
     keyboard->keyboard_map = map;
     int i;
