@@ -32,12 +32,12 @@ static const unsigned char CyclesED[256] =
 
 
 
-static void z80_exec_extended_ED(struct z80* z80)
+static void z80_exec_extended_ED(struct z80* z80, unsigned char* memory)
 {
     unsigned char I; //register
     unsigned short J; //register
 
-    I = OpZ80(z80, z80->registers.PC);
+    I = OpZ80(z80, memory, z80->registers.PC);
     unsigned char opcode = I;
     z80->ICount -= CyclesED[I];
 
@@ -62,7 +62,7 @@ static void z80_exec_extended_ED(struct z80* z80)
             M_IN_L(z80, J);break;
 
         case INI:      debug_opcode(z80, (char *)"INI", (char *)"A byte from port C is written to the memory pointed by HL. Then HL is incremented and B is decremented.");
-            WrZ80(z80, z80->registers.HL, InZ80(z80, z80->registers.BC));
+            WrZ80(memory, z80->registers.HL, InZ80(z80, z80->registers.BC));
             z80->registers.HL += 1;
             SET_MSB(z80->registers.BC, MSB(z80->registers.BC)-1);
             SET_LSB(z80->registers.AF, N_FLAG | (MSB(z80->registers.BC) ? 0: Z_FLAG));
@@ -71,7 +71,7 @@ static void z80_exec_extended_ED(struct z80* z80)
         case INIR:      debug_opcode(z80, (char *)"INIR", (char *)"A byte from port C is written to the memory pointed by HL. Then HL is incremented and B is decremented. If B is not zero, this operation is repeated. Interrupts can trigger while this instruction is processing.");
             do
             {
-                WrZ80(z80, z80->registers.HL, InZ80(z80, z80->registers.BC));
+                WrZ80(memory, z80->registers.HL, InZ80(z80, z80->registers.BC));
                 z80->registers.HL += 1;
                 SET_MSB(z80->registers.BC, MSB(z80->registers.BC)-1);
                 z80->ICount -= 21;
@@ -89,7 +89,7 @@ static void z80_exec_extended_ED(struct z80* z80)
             break;
 
         case IND:      debug_opcode(z80, (char *)"INI", (char *)"A byte from port C is written to the memory pointed by HL. Then HL and B are decremented.");
-            WrZ80(z80, z80->registers.HL, InZ80(z80, z80->registers.BC));
+            WrZ80(memory, z80->registers.HL, InZ80(z80, z80->registers.BC));
             z80->registers.HL -= 1;
             SET_MSB(z80->registers.BC, MSB(z80->registers.BC)-1);
             SET_LSB(z80->registers.AF, N_FLAG | (MSB(z80->registers.BC) ? 0: Z_FLAG));
@@ -99,7 +99,7 @@ static void z80_exec_extended_ED(struct z80* z80)
         case INDR:      debug_opcode(z80, (char *)"INDR", (char *)"A byte from port C is written to the memory pointed by HL. Then HL and B are decremented. If B is not zero, this operation is repeated. Interrupts can trigger while this instruction is processing.");
             do
             {
-                WrZ80(z80, z80->registers.HL, InZ80(z80, z80->registers.BC));
+                WrZ80(memory, z80->registers.HL, InZ80(z80, z80->registers.BC));
                 z80->registers.HL -= 1;
                 SET_MSB(z80->registers.BC, MSB(z80->registers.BC)-1);
                 z80->ICount -= 21;
@@ -134,7 +134,7 @@ static void z80_exec_extended_ED(struct z80* z80)
 
         case OUTI:      debug_opcode(z80, (char *)"OUTI", (char *)"A byte from the memory location pointed to by HL is written to port C. Then HL is incremented and B is decremented.");
             SET_MSB(z80->registers.BC, z80->registers.BC - 1);
-            I = RdZ80(z80, z80->registers.HL);
+            I = RdZ80(memory, z80->registers.HL);
             z80->registers.HL += 1;
             OutZ80(z80, z80->registers.BC, I);
             SET_LSB(z80->registers.AF, N_FLAG | (MSB(z80->registers.BC) ? 0: Z_FLAG) | (LSB(z80->registers.HL) + I > 255 ? (C_FLAG | H_FLAG) : 0));
@@ -142,7 +142,7 @@ static void z80_exec_extended_ED(struct z80* z80)
 
         case OUTD:      debug_opcode(z80, (char *)"OUTD", (char *)"A byte from the memory location pointed to by HL is written to port C. Then HL and B are decremented.");
             SET_MSB(z80->registers.BC, z80->registers.BC - 1);
-            I = RdZ80(z80, z80->registers.HL);
+            I = RdZ80(memory, z80->registers.HL);
             z80->registers.HL -= 1;
             OutZ80(z80, z80->registers.BC, I);
             SET_LSB(z80->registers.AF, N_FLAG | (MSB(z80->registers.BC) ? 0: Z_FLAG) | (LSB(z80->registers.HL) + I > 255 ? (C_FLAG | H_FLAG) : 0));
@@ -152,7 +152,7 @@ static void z80_exec_extended_ED(struct z80* z80)
             do
             {
                 SET_MSB(z80->registers.BC, z80->registers.BC - 1);
-                I = RdZ80(z80, z80->registers.HL);
+                I = RdZ80(memory, z80->registers.HL);
                 z80->registers.HL += 1;
                 OutZ80(z80, z80->registers.BC, I);
                 z80->ICount -= 21;
@@ -175,7 +175,7 @@ static void z80_exec_extended_ED(struct z80* z80)
             do
             {
                 SET_MSB(z80->registers.BC, z80->registers.BC - 1);
-                I = RdZ80(z80, z80->registers.HL);
+                I = RdZ80(memory, z80->registers.HL);
                 z80->registers.HL -= 1;
                 OutZ80(z80, z80->registers.BC, I);
                 z80->ICount -= 21;
@@ -231,59 +231,59 @@ static void z80_exec_extended_ED(struct z80* z80)
 
 
         case LD_BC_xWORDe:      debug_opcode(z80, (char *)"LD_BC_xWORDe", (char *)"Loads the value pointed to by WORD into BC."); 
-            M_LDWORD(z80, J); 
-            SET_LSB(z80->registers.BC, RdZ80(z80, J));
+            M_LDWORD(z80, memory, J); 
+            SET_LSB(z80->registers.BC, RdZ80(memory, J));
             J += 1;
-            SET_MSB(z80->registers.BC, RdZ80(z80, J));
+            SET_MSB(z80->registers.BC, RdZ80(memory, J));
             break;
         case LD_DE_xWORDe:      debug_opcode(z80, (char *)"LD_DE_xWORDe", (char *)"Loads the value pointed to by WORD into DE."); 
-            M_LDWORD(z80, J); 
-            SET_LSB(z80->registers.DE, RdZ80(z80, J));
+            M_LDWORD(z80, memory, J); 
+            SET_LSB(z80->registers.DE, RdZ80(memory, J));
             J += 1;
-            SET_MSB(z80->registers.DE, RdZ80(z80, J));
+            SET_MSB(z80->registers.DE, RdZ80(memory, J));
             break;
         case LD_HL_xWORDe:      debug_opcode(z80, (char *)"LD_HL_xWORDe", (char *)"Loads the value pointed to by WORD into HL."); 
-            M_LDWORD(z80, J); 
-            SET_LSB(z80->registers.HL, RdZ80(z80, J));
+            M_LDWORD(z80, memory, J); 
+            SET_LSB(z80->registers.HL, RdZ80(memory, J));
             J += 1;
-            SET_MSB(z80->registers.HL, RdZ80(z80, J));
+            SET_MSB(z80->registers.HL, RdZ80(memory, J));
             break;
         case LD_SP_xWORDe:      debug_opcode(z80, (char *)"LD_SP_xWORDe", (char *)"Loads the value pointed to by WORD into SP."); 
-            M_LDWORD(z80, J); 
-            SET_LSB(z80->registers.SP, RdZ80(z80, J));
+            M_LDWORD(z80, memory, J); 
+            SET_LSB(z80->registers.SP, RdZ80(memory, J));
             J += 1;
-            SET_MSB(z80->registers.SP, RdZ80(z80, J));
+            SET_MSB(z80->registers.SP, RdZ80(memory, J));
             break;
 
 
         case LD_xWORDe_BC:      debug_opcode(z80, (char *)"LD_xWORDe_BC", (char *)"Stores BC into the memory location pointed to by WORD."); 
-            M_LDWORD(z80, J); 
-            WrZ80(z80, J, LSB(z80->registers.BC));
+            M_LDWORD(z80, memory, J); 
+            WrZ80(memory, J, LSB(z80->registers.BC));
             J += 1;
-            WrZ80(z80, J, MSB(z80->registers.BC));
+            WrZ80(memory, J, MSB(z80->registers.BC));
             break;
         case LD_xWORDe_DE:      debug_opcode(z80, (char *)"LD_xWORDe_DE", (char *)"Stores DE into the memory location pointed to by WORD."); 
-            M_LDWORD(z80, J); 
-            WrZ80(z80, J, LSB(z80->registers.DE));
+            M_LDWORD(z80, memory, J); 
+            WrZ80(memory, J, LSB(z80->registers.DE));
             J += 1;
-            WrZ80(z80, J, MSB(z80->registers.DE));
+            WrZ80(memory, J, MSB(z80->registers.DE));
             break;
         case LD_xWORDe_HL:      debug_opcode(z80, (char *)"LD_xWORDe_HL", (char *)"Stores HL into the memory location pointed to by WORD."); 
-            M_LDWORD(z80, J); 
-            WrZ80(z80, J, LSB(z80->registers.HL));
+            M_LDWORD(z80, memory, J); 
+            WrZ80(memory, J, LSB(z80->registers.HL));
             J += 1;
-            WrZ80(z80, J, MSB(z80->registers.HL));
+            WrZ80(memory, J, MSB(z80->registers.HL));
             break;
         case LD_xWORDe_SP:      debug_opcode(z80, (char *)"LD_xWORDe_SP", (char *)"Stores SP into the memory location pointed to by WORD."); 
-            M_LDWORD(z80, J); 
-            WrZ80(z80, J, LSB(z80->registers.SP));
+            M_LDWORD(z80, memory, J); 
+            WrZ80(memory, J, LSB(z80->registers.SP));
             J += 1;
-            WrZ80(z80, J, MSB(z80->registers.SP));
+            WrZ80(memory, J, MSB(z80->registers.SP));
             break;
 
 
         case LDI:      debug_opcode(z80, (char *)"LDI", (char *)"Transfers a byte of data from the memory location pointed to by HL to the memory location pointed to by DE. Then HL and DE are incremented and BC is decremented."); 
-            WrZ80(z80, z80->registers.DE, RdZ80(z80, z80->registers.HL));
+            WrZ80(memory, z80->registers.DE, RdZ80(memory, z80->registers.HL));
             z80->registers.DE += 1;
             z80->registers.HL += 1;
             z80->registers.BC -= 1;
@@ -291,7 +291,7 @@ static void z80_exec_extended_ED(struct z80* z80)
             break;
 
         case LDD:      debug_opcode(z80, (char *)"LDD", (char *)"Transfers a byte of data from the memory location pointed to by HL to the memory location pointed to by DE. Then HL, DE and BC are decremented."); 
-            WrZ80(z80, z80->registers.DE, RdZ80(z80, z80->registers.HL));
+            WrZ80(memory, z80->registers.DE, RdZ80(memory, z80->registers.HL));
             z80->registers.DE -= 1;
             z80->registers.HL -= 1;
             z80->registers.BC -= 1;
@@ -301,7 +301,7 @@ static void z80_exec_extended_ED(struct z80* z80)
         case LDIR:      debug_opcode(z80, (char *)"LDIR", (char *)"Transfers a byte of data from the memory location pointed to by HL to the memory location pointed to by DE. Then HL and DE are incremented and BC is decremented. If BC is not zero, this operation is repeated. Interrupts can trigger while this instruction is processing."); 
             do
             {
-                WrZ80(z80, z80->registers.DE, RdZ80(z80, z80->registers.HL));
+                WrZ80(memory, z80->registers.DE, RdZ80(memory, z80->registers.HL));
                 z80->registers.DE += 1;
                 z80->registers.HL += 1;
                 z80->registers.BC -= 1;
@@ -322,7 +322,7 @@ static void z80_exec_extended_ED(struct z80* z80)
         case LDDR:      debug_opcode(z80, (char *)"LDDR", (char *)"Transfers a byte of data from the memory location pointed to by HL to the memory location pointed to by DE. Then HL, DE and BC are decremented. If BC is not zero, this operation is repeated. Interrupts can trigger while this instruction is processing."); 
             do
             {
-                WrZ80(z80, z80->registers.DE, RdZ80(z80, z80->registers.HL));
+                WrZ80(memory, z80->registers.DE, RdZ80(memory, z80->registers.HL));
                 z80->registers.DE -= 1;
                 z80->registers.HL -= 1;
                 z80->registers.BC -= 1;
@@ -342,17 +342,17 @@ static void z80_exec_extended_ED(struct z80* z80)
 
 
         case RLD:      debug_opcode(z80, (char *)"RLD", (char *)"The contents of the low-order nibble of (HL) are copied to the high-order nibble of (HL). The previous contents are copied to the low-order nibble of A. The previous contents are copied to the low-order nibble of (HL)."); 
-            I = RdZ80(z80, z80->registers.HL);
+            I = RdZ80(memory, z80->registers.HL);
             SET_LSB(J, (I << 4) | (MSB(z80->registers.AF) & 0x0F));
-            WrZ80(z80, z80->registers.HL, LSB(J));
+            WrZ80(memory, z80->registers.HL, LSB(J));
             SET_MSB(z80->registers.AF, (I >> 4) | (MSB(z80->registers.AF) & 0xF0));
             SET_LSB(z80->registers.AF, PZSTable[MSB(z80->registers.AF)] | (LSB(z80->registers.AF) & C_FLAG));
             break;
         
         case RRD:      debug_opcode(z80, (char *)"RRD", (char *)"The contents of the low-order nibble of (HL) are copied to the low-order nibble of A. The previous contents are copied to the high-order nibble of (HL). The previous contents are copied to the low-order nibble of (HL)."); 
-            I = RdZ80(z80, z80->registers.HL);
+            I = RdZ80(memory, z80->registers.HL);
             SET_LSB(J, (I >> 4) | (MSB(z80->registers.AF) << 4));
-            WrZ80(z80, z80->registers.HL, LSB(J));
+            WrZ80(memory, z80->registers.HL, LSB(J));
             SET_MSB(z80->registers.AF, (I & 0x0F) | (MSB(z80->registers.AF) & 0xF0));
             SET_LSB(z80->registers.AF, PZSTable[MSB(z80->registers.AF)] | (LSB(z80->registers.AF) & C_FLAG));
         break;
@@ -384,12 +384,12 @@ static void z80_exec_extended_ED(struct z80* z80)
                 z80->registers.IFF |= IFF_1;
             else
                 z80->registers.IFF &= ~IFF_1;
-            M_RET(z80);
+            M_RET(z80, memory);
         break;
 
 
         case CPI:      debug_opcode(z80, (char *)"CPI", (char *)"Compares the value of the memory location pointed to by HL with A. Then HL is incremented and BC is decremented.");
-            I = RdZ80(z80, z80->registers.HL);
+            I = RdZ80(memory, z80->registers.HL);
             z80->registers.HL += 1;
             SET_LSB(J, MSB(z80->registers.AF) - I);
             z80->registers.BC = z80->registers.BC - 1;
@@ -399,7 +399,7 @@ static void z80_exec_extended_ED(struct z80* z80)
             break;
 
         case CPD:      debug_opcode(z80, (char *)"CPD", (char *)"Compares the value of the memory location pointed to by HL with A. Then HL is decremented and BC is decremented.");
-            I = RdZ80(z80, z80->registers.HL);
+            I = RdZ80(memory, z80->registers.HL);
             SET_LSB(J, MSB(z80->registers.AF) - I);
             SET_LSB(z80->registers.AF, 
                 N_FLAG | (LSB(z80->registers.AF) & C_FLAG) | ZSTable[LSB(J)] |
@@ -411,7 +411,7 @@ static void z80_exec_extended_ED(struct z80* z80)
         case CPIR:      debug_opcode(z80, (char *)"CPIR", (char *)"Compares the value of the memory location pointed to by HL with A. Then HL is incremented and BC is decremented. If BC is not zero and Z is not set, this operation is repeated. Interrupts can trigger while this instruction is processing.");
             do
             {
-                I = RdZ80(z80, z80->registers.HL);
+                I = RdZ80(memory, z80->registers.HL);
                 SET_LSB(J, MSB(z80->registers.AF) - I);
                 SET_LSB(z80->registers.AF, 
                                 N_FLAG | (LSB(z80->registers.AF) & C_FLAG) | ZSTable[LSB(J)] |
@@ -435,7 +435,7 @@ static void z80_exec_extended_ED(struct z80* z80)
         case CPDR:      debug_opcode(z80, (char *)"CPDR", (char *)"Compares the value of the memory location pointed to by HL with A. Then HL and BC are decremented. If BC is not zero and Z is not set, this operation is repeated. Interrupts can trigger while this instruction is processing.");
             do
             {
-                I = RdZ80(z80, z80->registers.HL);                
+                I = RdZ80(memory, z80->registers.HL);                
                 SET_LSB(J, MSB(z80->registers.AF) - I);
                 SET_LSB(z80->registers.AF, 
                         N_FLAG | (LSB(z80->registers.AF) & C_FLAG) | ZSTable[LSB(J)] |
@@ -464,7 +464,7 @@ static void z80_exec_extended_ED(struct z80* z80)
             printf
             (
                 "[Z80 %lX] Unrecognized instruction: ED %02X at PC=%04X\n",
-                (long)z80->User, OpZ80(z80, z80->registers.PC-1),z80->registers.PC-2
+                (long)z80->User, OpZ80(z80, memory, z80->registers.PC-1),z80->registers.PC-2
             );
         }
 

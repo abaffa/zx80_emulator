@@ -12,6 +12,7 @@
 
 #include "z80.h"
 #include "zx80_keyboard.h"
+#include "zx80_memory.h"
 
 using namespace std::chrono;
 
@@ -35,6 +36,14 @@ typedef enum zx_keyboard {
 char state = 0;
 unsigned short mem_offset = 0;
 int mem_follow = 0;
+
+
+struct zx80_computer
+{
+	struct z80 *z80;
+	struct zx80_memory *zx80_memory;
+};
+
 
 void cls(HANDLE hConsole)
 {
@@ -93,14 +102,14 @@ void cls(HANDLE hConsole)
   (byte & 0x01 ? '1' : '0') 
 
 
-void cpu_exec(struct z80 *z80) {
-	z80_exec(z80);
+void cpu_exec(struct z80 *z80, unsigned char* memory) {
+	z80_exec(z80, memory);
 }
 
 #define LSB(w) ((w) & 0xff)
 #define MSB(w) (((w) >> 8) & 0xff)
 #define WORD(l, h) (((h)<<8) | (l))
-void cpu_print(struct z80 *z80) {
+void cpu_print(struct z80 *z80, unsigned char* memory) {
 
 	printf("\t ""%c%c%c%c%c%c%c%c""\n", BYTE_TO_BINARY(MSB(z80->registers.AF)));
 
@@ -151,9 +160,9 @@ void cpu_print(struct z80 *z80) {
 			else
 				printf("  ");
 		if (z80->registers.PC == i || z80->registers.PC - 1 == i)
-			printf("%02x#", RdZ80(z80, i));
+			printf("%02x#", RdZ80(memory, i));
 		else
-			printf("%02x ", RdZ80(z80, i));
+			printf("%02x ", RdZ80(memory, i));
 
 		if ((i + 1) % 16 == 0 && i < 255 + mem_offset)
 			printf("\n %04x ", i + 1);
@@ -162,8 +171,8 @@ void cpu_print(struct z80 *z80) {
 	printf("Stack:");
 	for (i = 0; i < 16; i += 2) {
 		if (i % 2 == 0) printf("  ");
-		printf("%02x", RdZ80(z80, z80->registers.SP + i + 1));
-		printf("%02x", RdZ80(z80, z80->registers.SP + i));
+		printf("%02x", RdZ80(memory, z80->registers.SP + i + 1));
+		printf("%02x", RdZ80(memory, z80->registers.SP + i));
 	}
 
 	printf("\n\n");
@@ -180,8 +189,8 @@ void display_bit(SDL_Renderer* renderer, int x, int y, unsigned char b, int bit_
 			((((b & 0xFF) << bit_x) & 0x80) == 0x00 && inverse)
 			) {
 			SDL_Rect r;
-			r.x = (x * 8 * ZX80_WINDOW_MULTIPLIER) + (bit_x * ZX80_WINDOW_MULTIPLIER);
-			r.y = y * 8 * ZX80_WINDOW_MULTIPLIER + bit_y * ZX80_WINDOW_MULTIPLIER;
+			r.x = ((x * 8 * ZX80_WINDOW_MULTIPLIER) + (bit_x * ZX80_WINDOW_MULTIPLIER)) + ZX80_BORDER;
+			r.y = (y * 8 * ZX80_WINDOW_MULTIPLIER + bit_y * ZX80_WINDOW_MULTIPLIER) + ZX80_BORDER;
 			r.w = ZX80_WINDOW_MULTIPLIER;
 			r.h = ZX80_WINDOW_MULTIPLIER;
 			SDL_RenderFillRect(renderer, &r);
@@ -201,7 +210,8 @@ DWORD WINAPI run_thread(LPVOID vargp)
 #endif
 {
 
-	struct z80 *z80 = (struct z80*)vargp;
+	struct z80 *z80 = ((struct zx80_computer*)vargp)->z80;
+	struct zx80_memory *zx80_memory = ((struct zx80_computer*)vargp)->zx80_memory;
 	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 	cls(hConsole);
 
@@ -212,7 +222,7 @@ DWORD WINAPI run_thread(LPVOID vargp)
 
 	printf("0.0fMHz - 0\n");
 	printf("Opcode: \n\n\n");
-	cpu_print(z80);
+	cpu_print(z80, zx80_memory->memory);
 
 	int iii = 0;
 	double speed = 3.0769230769231E-10;
@@ -259,7 +269,7 @@ DWORD WINAPI run_thread(LPVOID vargp)
 
 		if ((z80->registers.IFF & IFF_HALT) == 0x0 &&
 			((!do_steps && cpu >= speed) || (do_steps && step))) {
-			cpu_exec(z80); iii++;
+			cpu_exec(z80, zx80_memory->memory); iii++;
 			cpu = 0;
 
 			step = 0;
@@ -302,7 +312,7 @@ DWORD WINAPI run_thread(LPVOID vargp)
 				}
 
 				if (key == (int)'2') {
-					if (mem_offset + 0x10 < Z80_MEMORY_SIZE)
+					if (mem_offset + 0x10 < ZX80_MEMORY_SIZE)
 						mem_offset += 0x10;
 				}
 				if (key == (int)'1') {
@@ -310,7 +320,7 @@ DWORD WINAPI run_thread(LPVOID vargp)
 						mem_offset -= 0x10;
 				}
 				if (key == (int)'3') {
-					if (mem_offset + 0x100 < Z80_MEMORY_SIZE)
+					if (mem_offset + 0x100 < ZX80_MEMORY_SIZE)
 						mem_offset += 0x100;
 				}
 				if (key == (int)'4') {
@@ -318,7 +328,7 @@ DWORD WINAPI run_thread(LPVOID vargp)
 						mem_offset -= 0x100;
 				}
 				if (key == (int)'5') {
-					if (mem_offset + 0x1000 < Z80_MEMORY_SIZE)
+					if (mem_offset + 0x1000 < ZX80_MEMORY_SIZE)
 						mem_offset += 0x1000;
 				}
 				if (key == (int)'6') {
@@ -355,7 +365,7 @@ DWORD WINAPI run_thread(LPVOID vargp)
 			SetConsoleCursorPosition(hConsole, pos);
 			printf("%.3fMHz - %g\n", ((float)iii) / 1000000, speed);
 			printf("%s", z80->last_op_desc);
-			cpu_print(z80);
+			cpu_print(z80, zx80_memory->memory);
 			frame = 0;
 
 		}
@@ -368,9 +378,9 @@ DWORD WINAPI run_thread(LPVOID vargp)
 
 			//do_steps = 0;
 			//do_steps = 1;
-			IntZ80(z80, INT_IRQ); iii++;
+			IntZ80(z80, zx80_memory->memory, INT_IRQ); iii++;
 			z80->registers.IFF |= IFF_1;
-			IntZ80(z80, INT_IRQ);
+			IntZ80(z80, zx80_memory->memory, INT_IRQ);
 		}
 
 
@@ -430,20 +440,25 @@ int main(int argc, char** argv)
 
 
 	struct zx80_keyboard zx80_keyboard;
+	struct zx80_memory zx80_memory;
 	struct z80 z80;
 	z80_init(&z80);
 
+	///////////////////////////////////////////////////////////////////////////
+	zx80_memory.memory = (unsigned char*)malloc(ZX80_MEMORY_SIZE * sizeof(unsigned char));
+	//memcpy(z80->memory.memory, z80_default_character_set, sizeof(z80_default_character_set));
+
 	int j = 0;
-	for (j = 0; j < Z80_MEMORY_SIZE; j++) {
-		z80.memory.memory[j] = 0x07;
+	for (j = 0; j < ZX80_MEMORY_SIZE; j++) {
+		zx80_memory.memory[j] = 0x07;
 	}
 
-	z80_load(&z80, buf, size, 0x0000);
-	//z80_load(&z80, buf, size, 0x2000);
-	//z80_load(&z80, buf, size, 0x4000);
-	//z80_load(&z80, buf, size, 0x8000);
-	//z80_load(&z80, buf, size, 0xA000);
-	//z80_load(&z80, buf, size, 0xC000);
+	//assert(size + Z80_PROGRAM_LOAD_ADDRESS < Z80_MEMORY_SIZE);
+	//memcpy(&z80->memory.memory[Z80_PROGRAM_LOAD_ADDRESS], buf, size);
+
+	//memcpy(z80->memory.memory, buf, size);
+	memcpy(&zx80_memory.memory[0], buf, size);
+	///////////////////////////////////////////////////////////////////////////
 
 	z80_reset(&z80);
 
@@ -454,8 +469,8 @@ int main(int argc, char** argv)
 		EMULATOR_WINDOW_TITLE,
 		SDL_WINDOWPOS_UNDEFINED,
 		SDL_WINDOWPOS_UNDEFINED,
-		ZX80_WIDTH * ZX80_WINDOW_MULTIPLIER,
-		ZX80_HEIGHT * ZX80_WINDOW_MULTIPLIER,
+		(ZX80_WIDTH * ZX80_WINDOW_MULTIPLIER) + (ZX80_BORDER * 2),
+		(ZX80_HEIGHT * ZX80_WINDOW_MULTIPLIER) + (ZX80_BORDER * 2),
 		SDL_WINDOW_SHOWN
 	);
 
@@ -466,12 +481,17 @@ int main(int argc, char** argv)
 	Uint64 NOW = SDL_GetPerformanceCounter();
 	Uint64 LAST = 0;
 
+
+	struct zx80_computer zx80_computer;
+	zx80_computer.z80 = &z80;
+	zx80_computer.zx80_memory = &zx80_memory;
+
 #ifdef __MINGW32__
 	pthread_t tid;
-	pthread_create(&tid, NULL, run_thread, (void *)&z80);
+	pthread_create(&tid, NULL, run_thread, (void *)&zx80_computer);
 #elif _MSC_VER        
 	DWORD tid;
-	HANDLE myHandle = CreateThread(0, 0, run_thread, &z80, 0, &tid);
+	HANDLE myHandle = CreateThread(0, 0, run_thread, &zx80_computer, 0, &tid);
 #endif
 
 
@@ -497,7 +517,7 @@ int main(int argc, char** argv)
 				break;
 
 			case SDL_KEYDOWN: {
-				char key = event.key.keysym.sym;
+				int key = event.key.keysym.sym;
 
 				int vkey = zx80_keyboard_map(&zx80_keyboard, key);
 				if (vkey != -1) {
@@ -644,7 +664,7 @@ int main(int argc, char** argv)
 							  break;
 
 			case SDL_KEYUP: {
-				char key = event.key.keysym.sym;
+				int key = event.key.keysym.sym;
 				int vkey = zx80_keyboard_map(&zx80_keyboard, key);
 				if (vkey != -1) {
 
@@ -807,7 +827,7 @@ int main(int argc, char** argv)
 					//printf("key_up %x\n",z80.PORT_FEFEh);
 
 					if (zx80_keyboard_is_down(&zx80_keyboard, 2)) {
-						if (mem_offset < Z80_MEMORY_SIZE)
+						if (mem_offset < ZX80_MEMORY_SIZE)
 							mem_offset += 0xF;
 					}
 					if (zx80_keyboard_is_down(&zx80_keyboard, 1)) {
@@ -815,7 +835,7 @@ int main(int argc, char** argv)
 							mem_offset -= 0xF;
 					}
 					if (zx80_keyboard_is_down(&zx80_keyboard, 3)) {
-						if (mem_offset < Z80_MEMORY_SIZE)
+						if (mem_offset < ZX80_MEMORY_SIZE)
 							mem_offset += 0xF0;
 					}
 					if (zx80_keyboard_is_down(&zx80_keyboard, 4)) {
@@ -855,21 +875,21 @@ int main(int argc, char** argv)
 
 		unsigned short vram = 0x400C;
 
-		vram = WORD(RdZ80(&z80, vram), RdZ80(&z80, vram + 1));
+		vram = WORD(RdZ80(zx80_memory.memory, vram), RdZ80(zx80_memory.memory, vram + 1));
 
 
 
 		for (i = 0; i < 25; i++) {
 
-			while (RdZ80(&z80, vram) != 0x76) {
-				unsigned char keymap_code = RdZ80(&z80, vram);
+			while (RdZ80(zx80_memory.memory, vram) != 0x76) {
+				unsigned char keymap_code = RdZ80(zx80_memory.memory, vram);
 				int is_inversed = (keymap_code & 0x80) != 0;
 				int keymap_address = 0x0E00 + (keymap_code & 0x7F) * 8;
 
 				int bit_y = 0;
 				int ka;
 				for (ka = keymap_address; ka < keymap_address + 8; ka++) {
-					display_bit(renderer, x, y, RdZ80(&z80, ka), bit_y, is_inversed);
+					display_bit(renderer, x, y, RdZ80(zx80_memory.memory, ka), bit_y, is_inversed);
 					//printf("%04x\t%02x\n", ka, RdZ80(&z80, ka));
 					bit_y++;
 				}

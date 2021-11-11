@@ -13,7 +13,7 @@ void zx80_keyboard_set_map(struct zx80_keyboard* keyboard, const unsigned int* m
         keyboard->keyboard[i] = false;
 }
 
-int zx80_keyboard_map(struct zx80_keyboard* keyboard, char key)
+int zx80_keyboard_map(struct zx80_keyboard* keyboard, int key)
 {
     
     int i;

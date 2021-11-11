@@ -121,76 +121,76 @@
 
         //50
 
-        case LD_BC_WORD:    debug_opcode_reg_word(z80, (char *)"LD_BC_WORD", (char *)"Loads ** into BC"); 
-            M_LDWORD(z80, z80->registers.BC); break;
-        case LD_DE_WORD:    debug_opcode_reg_word(z80, (char *)"LD_DE_WORD", (char *)"Loads ** into DE"); 
-            M_LDWORD(z80, z80->registers.DE); break;
-        case LD_HL_WORD:    debug_opcode_reg_word(z80, (char *)"LD_HL_WORD", (char *)"Loads ** into HL"); 
-            M_LDWORD(z80, z80->registers.HL); break;
-        case LD_SP_WORD:    debug_opcode_reg_word(z80, (char *)"LD_SP_WORD", (char *)"Loads ** into SP"); 
-            M_LDWORD(z80, z80->registers.SP); break;
+        case LD_BC_WORD:    debug_opcode_reg_word(z80, memory, (char *)"LD_BC_WORD", (char *)"Loads ** into BC"); 
+            M_LDWORD(z80, memory, z80->registers.BC); break;
+        case LD_DE_WORD:    debug_opcode_reg_word(z80, memory, (char *)"LD_DE_WORD", (char *)"Loads ** into DE"); 
+            M_LDWORD(z80, memory, z80->registers.DE); break;
+        case LD_HL_WORD:    debug_opcode_reg_word(z80, memory, (char *)"LD_HL_WORD", (char *)"Loads ** into HL"); 
+            M_LDWORD(z80, memory, z80->registers.HL); break;
+        case LD_SP_WORD:    debug_opcode_reg_word(z80, memory, (char *)"LD_SP_WORD", (char *)"Loads ** into SP"); 
+            M_LDWORD(z80, memory, z80->registers.SP); break;
 
         case LD_A_xBC:      debug_opcode(z80, (char *)"LD_A_xBC", (char *)"The contents of BC are loaded into A");
-            SET_MSB(z80->registers.AF, RdZ80(z80, z80->registers.BC));break;
+            SET_MSB(z80->registers.AF, RdZ80(memory, z80->registers.BC));break;
         case LD_A_xDE:      debug_opcode(z80, (char *)"LD_A_xDE", (char *)"The contents of DE are loaded into A");
-            SET_MSB(z80->registers.AF, RdZ80(z80, z80->registers.DE));break;
+            SET_MSB(z80->registers.AF, RdZ80(memory, z80->registers.DE));break;
 
         case LD_xBC_A:      debug_opcode(z80, (char *)"LD_xBC_A", (char *)"Stores A into the memory location pointed to by BC");
-            WrZ80(z80, z80->registers.BC, MSB(z80->registers.AF)); break;
+            WrZ80(memory, z80->registers.BC, MSB(z80->registers.AF)); break;
         case LD_xDE_A:      debug_opcode(z80, (char *)"LD_xDE_A", (char *)"Stores A into the memory location pointed to by DE");
-            WrZ80(z80, z80->registers.DE, MSB(z80->registers.AF)); break;
+            WrZ80(memory, z80->registers.DE, MSB(z80->registers.AF)); break;
 
         case LD_A_xHL:      debug_opcode(z80, (char *)"LD_A_xHL", (char *)"The contents of (HL) are loaded into A");
-            SET_MSB(z80->registers.AF, RdZ80(z80, z80->registers.HL));break;
+            SET_MSB(z80->registers.AF, RdZ80(memory, z80->registers.HL));break;
         case LD_B_xHL:      debug_opcode(z80, (char *)"LD_B_xHL", (char *)"The contents of (HL) are loaded into B");
-            SET_MSB(z80->registers.BC, RdZ80(z80, z80->registers.HL));break;
+            SET_MSB(z80->registers.BC, RdZ80(memory, z80->registers.HL));break;
         case LD_C_xHL:      debug_opcode(z80, (char *)"LD_C_xHL", (char *)"The contents of (HL) are loaded into C");
-            SET_LSB(z80->registers.BC, RdZ80(z80, z80->registers.HL));break;
+            SET_LSB(z80->registers.BC, RdZ80(memory, z80->registers.HL));break;
         case LD_D_xHL:      debug_opcode(z80, (char *)"LD_D_xHL", (char *)"The contents of (HL) are loaded into D");
-            SET_MSB(z80->registers.DE, RdZ80(z80, z80->registers.HL));break;
+            SET_MSB(z80->registers.DE, RdZ80(memory, z80->registers.HL));break;
         case LD_E_xHL:      debug_opcode(z80, (char *)"LD_E_xHL", (char *)"The contents of (HL) are loaded into E");
-            SET_LSB(z80->registers.DE, RdZ80(z80, z80->registers.HL));break;
+            SET_LSB(z80->registers.DE, RdZ80(memory, z80->registers.HL));break;
         case LD_H_xHL:      debug_opcode(z80, (char *)"LD_H_xHL", (char *)"The contents of (HL) are loaded into H");
-            SET_MSB(z80->registers.HL, RdZ80(z80, z80->registers.HL));break;
+            SET_MSB(z80->registers.HL, RdZ80(memory, z80->registers.HL));break;
         case LD_L_xHL:      debug_opcode(z80, (char *)"LD_L_xHL", (char *)"The contents of (HL) are loaded into L");
-            SET_LSB(z80->registers.HL, RdZ80(z80, z80->registers.HL));break;
+            SET_LSB(z80->registers.HL, RdZ80(memory, z80->registers.HL));break;
 
         case LD_xHL_A:      debug_opcode(z80, (char *)"LD_xHL_A", (char *)"The contents of A are loaded into (HL)");
-            WrZ80(z80, z80->registers.HL, MSB(z80->registers.AF));break;
+            WrZ80(memory, z80->registers.HL, MSB(z80->registers.AF));break;
         case LD_xHL_B:      debug_opcode(z80, (char *)"LD_xHL_B", (char *)"The contents of B are loaded into (HL)");
-            WrZ80(z80, z80->registers.HL, MSB(z80->registers.BC));break;
+            WrZ80(memory, z80->registers.HL, MSB(z80->registers.BC));break;
         case LD_xHL_C:      debug_opcode(z80, (char *)"LD_xHL_C", (char *)"The contents of C are loaded into (HL)");
-            WrZ80(z80, z80->registers.HL, LSB(z80->registers.BC));break;
+            WrZ80(memory, z80->registers.HL, LSB(z80->registers.BC));break;
         case LD_xHL_D:      debug_opcode(z80, (char *)"LD_xHL_D", (char *)"The contents of D are loaded into (HL)");
-            WrZ80(z80, z80->registers.HL, MSB(z80->registers.DE));break;
+            WrZ80(memory, z80->registers.HL, MSB(z80->registers.DE));break;
         case LD_xHL_E:      debug_opcode(z80, (char *)"LD_xHL_E", (char *)"The contents of E are loaded into (HL)");
-            WrZ80(z80, z80->registers.HL, LSB(z80->registers.DE));break;
+            WrZ80(memory, z80->registers.HL, LSB(z80->registers.DE));break;
         case LD_xHL_H:      debug_opcode(z80, (char *)"LD_xHL_H", (char *)"The contents of H are loaded into (HL)");
-            WrZ80(z80, z80->registers.HL, MSB(z80->registers.HL));break;
+            WrZ80(memory, z80->registers.HL, MSB(z80->registers.HL));break;
         case LD_xHL_L:      debug_opcode(z80, (char *)"LD_xHL_L", (char *)"The contents of L are loaded into (HL)");
-            WrZ80(z80, z80->registers.HL, LSB(z80->registers.HL));break;
+            WrZ80(memory, z80->registers.HL, LSB(z80->registers.HL));break;
         
         //72
 
-        case LD_xWORD_A:    debug_opcode_reg_word(z80, (char *)"LD_xWORD_A", (char *)"Stores A into the memory location pointed to by WORD");
-            M_LDWORD(z80, J); 
-            WrZ80(z80, J, MSB(z80->registers.AF));
+        case LD_xWORD_A:    debug_opcode_reg_word(z80, memory, (char *)"LD_xWORD_A", (char *)"Stores A into the memory location pointed to by WORD");
+            M_LDWORD(z80, memory, J); 
+            WrZ80(memory, J, MSB(z80->registers.AF));
             break;        
-        case LD_xWORD_HL:    debug_opcode_reg_word(z80, (char *)"LD_xWORD_HL", (char *)"Stores HL into the memory location pointed to by WORD");
-            M_LDWORD(z80, J); 
-            WrZ80(z80, J, LSB(z80->registers.HL)); // ???
+        case LD_xWORD_HL:    debug_opcode_reg_word(z80, memory, (char *)"LD_xWORD_HL", (char *)"Stores HL into the memory location pointed to by WORD");
+            M_LDWORD(z80, memory, J); 
+            WrZ80(memory, J, LSB(z80->registers.HL)); // ???
             J += 1;
-            WrZ80(z80, J, MSB(z80->registers.HL));
+            WrZ80(memory, J, MSB(z80->registers.HL));
             break;      
-        case LD_A_xWORD:    debug_opcode_reg_word(z80, (char *)"LD_A_xWORD", (char *)"Load value pointed to by WORD into A");
-            M_LDWORD(z80, J); 
-            SET_MSB(z80->registers.AF, RdZ80(z80, J));
+        case LD_A_xWORD:    debug_opcode_reg_word(z80, memory, (char *)"LD_A_xWORD", (char *)"Load value pointed to by WORD into A");
+            M_LDWORD(z80, memory, J); 
+            SET_MSB(z80->registers.AF, RdZ80(memory, J));
             break;
-        case LD_HL_xWORD:    debug_opcode_reg_word(z80, (char *)"LD_HL_xWORD", (char *)"Load value pointed to by WORD into HL");
-            M_LDWORD(z80, J); 
-            SET_LSB(z80->registers.HL, RdZ80(z80,J));
+        case LD_HL_xWORD:    debug_opcode_reg_word(z80, memory, (char *)"LD_HL_xWORD", (char *)"Load value pointed to by WORD into HL");
+            M_LDWORD(z80, memory, J); 
+            SET_LSB(z80->registers.HL, RdZ80(memory, J));
             J += 1;
-            SET_MSB(z80->registers.HL, RdZ80(z80, J));
+            SET_MSB(z80->registers.HL, RdZ80(memory, J));
             break;
 
         //76
@@ -200,22 +200,22 @@
         case LD_SP_HL:      debug_opcode(z80, (char *)"LD_SP_HL", (char *)"Load value of HL into SP");
             z80->registers.SP = z80->registers.HL; break;
 
-        case LD_A_BYTE:     debug_opcode_reg_byte(z80, (char *)"LD_A_BYTE", (char *)"Load BYTE into A");
-            SET_MSB(z80->registers.AF, OpZ80(z80, z80->registers.PC)); break;
-        case LD_B_BYTE:     debug_opcode_reg_byte(z80, (char *)"LD_B_BYTE", (char *)"Load BYTE into B");
-            SET_MSB(z80->registers.BC, OpZ80(z80, z80->registers.PC)); break;
-        case LD_C_BYTE:     debug_opcode_reg_byte(z80, (char *)"LD_C_BYTE", (char *)"Load BYTE into C");
-            SET_LSB(z80->registers.BC, OpZ80(z80, z80->registers.PC)); break;
-        case LD_D_BYTE:     debug_opcode_reg_byte(z80, (char *)"LD_D_BYTE", (char *)"Load BYTE into D");
-            SET_MSB(z80->registers.DE, OpZ80(z80, z80->registers.PC)); break;
-        case LD_E_BYTE:     debug_opcode_reg_byte(z80, (char *)"LD_E_BYTE", (char *)"Load BYTE into E");
-            SET_LSB(z80->registers.DE, OpZ80(z80, z80->registers.PC)); break;
-        case LD_H_BYTE:     debug_opcode_reg_byte(z80, (char *)"LD_H_BYTE", (char *)"Load BYTE into H");
-            SET_MSB(z80->registers.HL, OpZ80(z80, z80->registers.PC)); break;
-        case LD_L_BYTE:     debug_opcode_reg_byte(z80, (char *)"LD_L_BYTE", (char *)"Load BYTE into L");
-            SET_LSB(z80->registers.HL, OpZ80(z80, z80->registers.PC)); break;
-        case LD_xHL_BYTE:   debug_opcode_reg_byte(z80, (char *)"LD_xHL_BYTE", (char *)"Load BYTE into (HL)");
-            WrZ80(z80, z80->registers.HL, OpZ80(z80, z80->registers.PC)); break;
+        case LD_A_BYTE:     debug_opcode_reg_byte(z80, memory, (char *)"LD_A_BYTE", (char *)"Load BYTE into A");
+            SET_MSB(z80->registers.AF, OpZ80(z80, memory, z80->registers.PC)); break;
+        case LD_B_BYTE:     debug_opcode_reg_byte(z80, memory, (char *)"LD_B_BYTE", (char *)"Load BYTE into B");
+            SET_MSB(z80->registers.BC, OpZ80(z80, memory, z80->registers.PC)); break;
+        case LD_C_BYTE:     debug_opcode_reg_byte(z80, memory, (char *)"LD_C_BYTE", (char *)"Load BYTE into C");
+            SET_LSB(z80->registers.BC, OpZ80(z80, memory, z80->registers.PC)); break;
+        case LD_D_BYTE:     debug_opcode_reg_byte(z80, memory, (char *)"LD_D_BYTE", (char *)"Load BYTE into D");
+            SET_MSB(z80->registers.DE, OpZ80(z80, memory, z80->registers.PC)); break;
+        case LD_E_BYTE:     debug_opcode_reg_byte(z80, memory, (char *)"LD_E_BYTE", (char *)"Load BYTE into E");
+            SET_LSB(z80->registers.DE, OpZ80(z80, memory, z80->registers.PC)); break;
+        case LD_H_BYTE:     debug_opcode_reg_byte(z80, memory, (char *)"LD_H_BYTE", (char *)"Load BYTE into H");
+            SET_MSB(z80->registers.HL, OpZ80(z80, memory, z80->registers.PC)); break;
+        case LD_L_BYTE:     debug_opcode_reg_byte(z80, memory, (char *)"LD_L_BYTE", (char *)"Load BYTE into L");
+            SET_LSB(z80->registers.HL, OpZ80(z80, memory, z80->registers.PC)); break;
+        case LD_xHL_BYTE:   debug_opcode_reg_byte(z80, memory, (char *)"LD_xHL_BYTE", (char *)"Load BYTE into (HL)");
+            WrZ80(memory, z80->registers.HL, OpZ80(z80, memory, z80->registers.PC)); break;
         
         //INC 86
 
@@ -243,7 +243,7 @@
         case INC_SP:        debug_opcode(z80, (char *)"INC_SP", (char *)"Adds one to SP");
             z80->registers.SP++;break;
         case INC_xHL:       debug_opcode(z80, (char *)"INC_xHL", (char *)"Adds one to (HL)");
-            I = RdZ80(z80, z80->registers.HL); M_INC_L(z80, I); WrZ80(z80, z80->registers.HL,I); break;
+            I = RdZ80(memory, z80->registers.HL); M_INC_L(z80, I); WrZ80(memory, z80->registers.HL,I); break;
 
         //DEC 98
 
@@ -271,7 +271,7 @@
         case DEC_SP:        debug_opcode(z80, (char *)"DEC_BC", (char *)"Subtracts one from SP");
             z80->registers.SP--;break;
         case DEC_xHL:       debug_opcode(z80, (char *)"DEC_BC", (char *)"Subtracts one from (HL)");
-            I = RdZ80(z80, z80->registers.HL); M_DEC_L(z80, I); WrZ80(z80, z80->registers.HL,I); break;
+            I = RdZ80(memory, z80->registers.HL); M_DEC_L(z80, I); WrZ80(memory, z80->registers.HL,I); break;
 
         //110
 
@@ -290,9 +290,9 @@
         case ADD_L:         debug_opcode(z80, (char *)"ADD_L", (char *)"Adds L to A");
             M_ADD(z80, LSB(z80->registers.HL));break;
         case ADD_xHL:       debug_opcode(z80, (char *)"ADD_xHL", (char *)"Adds (HL) to A");
-            I = RdZ80(z80, z80->registers.HL); M_ADD(z80, I); break;
+            I = RdZ80(memory, z80->registers.HL); M_ADD(z80, I); break;
         case ADD_BYTE:      debug_opcode(z80, (char *)"ADD_BYTE", (char *)"Adds BYTE to A");
-            I = OpZ80(z80, z80->registers.PC); M_ADD(z80, I); break;
+            I = OpZ80(z80, memory, z80->registers.PC); M_ADD(z80, I); break;
 
         case ADD_HL_BC:     debug_opcode(z80, (char *)"ADD_HL_BC", (char *)"The value of BC is added to HL");
             M_ADDW(z80, HL, BC);break; 
@@ -318,9 +318,9 @@
         case ADC_L:         debug_opcode(z80, (char *)"ADC_L", (char *)"Adds L and the carry flag to A");
             M_ADC(z80, LSB(z80->registers.HL));break;
         case ADC_xHL:       debug_opcode(z80, (char *)"ADC_xHL", (char *)"Adds (HL) and the carry flag to A");
-            I = RdZ80(z80, z80->registers.HL); M_ADC(z80, I); break;
+            I = RdZ80(memory, z80->registers.HL); M_ADC(z80, I); break;
         case ADC_BYTE:      debug_opcode(z80, (char *)"ADC_xHL", (char *)"Adds BYTE and the carry flag to A");
-            I = OpZ80(z80, z80->registers.PC); M_ADC(z80, I); break;
+            I = OpZ80(z80, memory, z80->registers.PC); M_ADC(z80, I); break;
   
         //132
 
@@ -341,9 +341,9 @@
         case SUB_L:      debug_opcode(z80, (char *)"SUB_L", (char *)"Subtracts L from A");    
             M_SUB(z80, LSB(z80->registers.HL));break;
         case SUB_xHL:       debug_opcode(z80, (char *)"SUB_xHL", (char *)"Subtracts (HL) from A");
-            I = RdZ80(z80, z80->registers.HL);M_SUB(z80, I);break;
+            I = RdZ80(memory, z80->registers.HL);M_SUB(z80, I);break;
         case SUB_BYTE:      debug_opcode(z80, (char *)"SUB_BYTE", (char *)"Subtracts BYTE from A");
-            I = OpZ80(z80, z80->registers.PC);M_SUB(z80, I);break;
+            I = OpZ80(z80, memory, z80->registers.PC);M_SUB(z80, I);break;
 
         case SBC_A:      debug_opcode(z80, (char *)"SBC_A", (char *)"Subtracts A and the carry flag from A");    
             M_SBC(z80, MSB(z80->registers.AF));break;
@@ -360,9 +360,9 @@
         case SBC_L:      debug_opcode(z80, (char *)"SBC_L", (char *)"Subtracts L and the carry flag from A");    
             M_SBC(z80, LSB(z80->registers.HL));break;
         case SBC_xHL:       debug_opcode(z80, (char *)"SBC_xHL", (char *)"Subtracts (HL) and the carry flag from A");
-            I = RdZ80(z80, z80->registers.HL);M_SBC(z80, I);break;
+            I = RdZ80(memory, z80->registers.HL);M_SBC(z80, I);break;
         case SBC_BYTE:      debug_opcode(z80, (char *)"SBC_BYTE", (char *)"Subtracts BYTE and the carry flag from A");
-            I = OpZ80(z80, z80->registers.PC);M_SBC(z80, I);break;
+            I = OpZ80(z80, memory, z80->registers.PC);M_SBC(z80, I);break;
 
         //150
 
@@ -381,9 +381,9 @@
         case AND_L:      debug_opcode(z80, (char *)"AND_L", (char *)"Bitwise AND on A with L");    
             M_AND(z80, LSB(z80->registers.HL));break;
         case AND_xHL:       debug_opcode(z80, (char *)"AND_xHL", (char *)"Bitwise AND on A with (HL)");
-            I = RdZ80(z80, z80->registers.HL);M_AND(z80, I);break;
+            I = RdZ80(memory, z80->registers.HL);M_AND(z80, I);break;
         case AND_BYTE:      debug_opcode(z80, (char *)"AND_BYTE", (char *)"Bitwise AND on A with BYTE");
-            I = OpZ80(z80, z80->registers.PC);M_AND(z80, I);break;
+            I = OpZ80(z80, memory, z80->registers.PC);M_AND(z80, I);break;
 
         case OR_A:      debug_opcode(z80, (char *)"OR_A", (char *)"Bitwise OR on A with A");    
             M_OR(z80, MSB(z80->registers.AF));break;
@@ -400,9 +400,9 @@
         case OR_L:      debug_opcode(z80, (char *)"OR_L", (char *)"Bitwise OR on A with L");    
             M_OR(z80, LSB(z80->registers.HL));break;
         case OR_xHL:       debug_opcode(z80, (char *)"OR_xHL", (char *)"Bitwise OR on A with (HL)");
-            I = RdZ80(z80, z80->registers.HL);M_OR(z80, I);break;
+            I = RdZ80(memory, z80->registers.HL);M_OR(z80, I);break;
         case OR_BYTE:      debug_opcode(z80, (char *)"OR_BYTE", (char *)"Bitwise OR on A with BYTE");
-            I = OpZ80(z80, z80->registers.PC);M_OR(z80, I);break;
+            I = OpZ80(z80, memory, z80->registers.PC);M_OR(z80, I);break;
 
         case XOR_A:      debug_opcode(z80, (char *)"XOR_A", (char *)"Bitwise XOR on A with A");    
             SET_MSB(z80->registers.AF, 0);
@@ -421,9 +421,9 @@
         case XOR_L:      debug_opcode(z80, (char *)"XOR_L", (char *)"Bitwise XOR on A with L");    
             M_XOR(z80, LSB(z80->registers.HL));break;
         case XOR_xHL:       debug_opcode(z80, (char *)"XOR_xHL", (char *)"Bitwise XOR on A with (HL)");
-            I = RdZ80(z80, z80->registers.HL);M_XOR(z80, I);break;
+            I = RdZ80(memory, z80->registers.HL);M_XOR(z80, I);break;
         case XOR_BYTE:      debug_opcode(z80, (char *)"XOR_BYTE", (char *)"Bitwise XOR on A with BYTE");
-            I = OpZ80(z80, z80->registers.PC);M_XOR(z80, I);break;
+            I = OpZ80(z80, memory, z80->registers.PC);M_XOR(z80, I);break;
    
         case CP_A:      debug_opcode(z80, (char *)"CP_A", (char *)"Subtracts A from A and affects flags according to the result. A is not modified.");    
             SET_LSB(z80->registers.AF, N_FLAG | Z_FLAG);        
@@ -441,91 +441,91 @@
         case CP_L:      debug_opcode(z80, (char *)"CP_L", (char *)"Subtracts J from A and affects flags according to the result. A is not modified.");    
             M_CP(z80, LSB(z80->registers.HL));break;
         case CP_xHL:       debug_opcode(z80, (char *)"CP_xHL", (char *)"Subtracts (HL) from A and affects flags according to the result. A is not modified.");
-            I = RdZ80(z80, z80->registers.HL);M_CP(z80, I);break;
+            I = RdZ80(memory, z80->registers.HL);M_CP(z80, I);break;
         case CP_BYTE:      debug_opcode(z80, (char *)"CP_BYTE", (char *)"Subtracts BYTE from A and affects flags according to the result. A is not modified.");
-            I = OpZ80(z80, z80->registers.PC);M_CP(z80, I);break;
+            I = OpZ80(z80, memory, z80->registers.PC);M_CP(z80, I);break;
 
         //186
 
         case CALL:       debug_opcode(z80, (char *)"CALL", (char *)"The current PC value +3 is pushed onto stack, then is loaded with WORD");
-            M_CALL(z80); break;
+            M_CALL(z80, memory); break;
         case CALL_NZ:       debug_opcode(z80, (char *)"CALL_NZ", (char *)"If condition Z is false, the current PC value +3 is pushed onto stack, then is loaded with WORD");
-            if((LSB(z80->registers.AF) & Z_FLAG) == 0x0) {M_CALL(z80); } else z80->registers.PC += 2; break;        
+            if((LSB(z80->registers.AF) & Z_FLAG) == 0x0) {M_CALL(z80, memory); } else z80->registers.PC += 2; break;        
         case CALL_NC:       debug_opcode(z80, (char *)"CALL_NC", (char *)"If condition C is false, the current PC value +3 is pushed onto stack, then is loaded with WORD");
-            if((LSB(z80->registers.AF) & C_FLAG) == 0x0) {M_CALL(z80); } else z80->registers.PC += 2; break;        
+            if((LSB(z80->registers.AF) & C_FLAG) == 0x0) {M_CALL(z80, memory); } else z80->registers.PC += 2; break;        
         case CALL_PO:       debug_opcode(z80, (char *)"CALL_PO", (char *)"If condition P is false, the current PC value +3 is pushed onto stack, then is loaded with WORD");
-            if((LSB(z80->registers.AF) & P_FLAG) == 0x0) {M_CALL(z80); } else z80->registers.PC += 2; break;        
+            if((LSB(z80->registers.AF) & P_FLAG) == 0x0) {M_CALL(z80, memory); } else z80->registers.PC += 2; break;        
         case CALL_P:       debug_opcode(z80, (char *)"CALL_P", (char *)"If condition S is false, the current PC value +3 is pushed onto stack, then is loaded with WORD");
-            if((LSB(z80->registers.AF) & S_FLAG) == 0x0) {M_CALL(z80); } else z80->registers.PC += 2; break;        
+            if((LSB(z80->registers.AF) & S_FLAG) == 0x0) {M_CALL(z80, memory); } else z80->registers.PC += 2; break;        
         
         case CALL_Z:       debug_opcode(z80, (char *)"CALL_Z", (char *)"If condition Z is true, the current PC value +3 is pushed onto stack, then is loaded with WORD");
-            if(LSB(z80->registers.AF) & Z_FLAG) {M_CALL(z80); } else z80->registers.PC += 2; break;        
+            if(LSB(z80->registers.AF) & Z_FLAG) {M_CALL(z80, memory); } else z80->registers.PC += 2; break;        
         case CALL_C:       debug_opcode(z80, (char *)"CALL_C", (char *)"If condition C is true, the current PC value +3 is pushed onto stack, then is loaded with WORD");
-            if(LSB(z80->registers.AF) & C_FLAG) {M_CALL(z80); } else z80->registers.PC += 2; break;        
+            if(LSB(z80->registers.AF) & C_FLAG) {M_CALL(z80, memory); } else z80->registers.PC += 2; break;        
         case CALL_PE:       debug_opcode(z80, (char *)"CALL_PE", (char *)"If condition P is true, the current PC value +3 is pushed onto stack, then is loaded with WORD"); 
-            if(LSB(z80->registers.AF) & P_FLAG) {M_CALL(z80); } else z80->registers.PC += 2; break;        
+            if(LSB(z80->registers.AF) & P_FLAG) {M_CALL(z80, memory); } else z80->registers.PC += 2; break;        
         case CALL_M:       debug_opcode(z80, (char *)"CALL_M", (char *)"If condition S is true, the current PC value +3 is pushed onto stack, then is loaded with WORD");
-            if(LSB(z80->registers.AF) & S_FLAG) {M_CALL(z80); } else z80->registers.PC += 2; break;        
+            if(LSB(z80->registers.AF) & S_FLAG) {M_CALL(z80, memory); } else z80->registers.PC += 2; break;        
         
 
         case RET:        debug_opcode(z80, (char *)"RET", (char *)"The top stack entry is popped into PC");
-            M_RET(z80); break;
+            M_RET(z80, memory); break;
         case RET_NZ:        debug_opcode(z80, (char *)"RET_NZ", (char *)"If condition Z is false, the top stack entry is popped into PC");
-            if((LSB(z80->registers.AF) & Z_FLAG) == 0x0) {M_RET(z80); } break;
+            if((LSB(z80->registers.AF) & Z_FLAG) == 0x0) {M_RET(z80, memory); } break;
         case RET_NC:        debug_opcode(z80, (char *)"RET_NC", (char *)"If condition C is false, the top stack entry is popped into PC");
-            if((LSB(z80->registers.AF) & C_FLAG) == 0x0) {M_RET(z80); } break;
+            if((LSB(z80->registers.AF) & C_FLAG) == 0x0) {M_RET(z80, memory); } break;
         case RET_PO:        debug_opcode(z80, (char *)"RET_PO", (char *)"If condition P is false, the top stack entry is popped into PC");
-            if((LSB(z80->registers.AF) & P_FLAG) == 0x0) {M_RET(z80); } break;
+            if((LSB(z80->registers.AF) & P_FLAG) == 0x0) {M_RET(z80, memory); } break;
         case RET_P:        debug_opcode(z80, (char *)"RET_P", (char *)"If condition S is false, the top stack entry is popped into PC");
-            if((LSB(z80->registers.AF) & S_FLAG) == 0x0) {M_RET(z80); } break;
+            if((LSB(z80->registers.AF) & S_FLAG) == 0x0) {M_RET(z80, memory); } break;
         
         case RET_Z:        debug_opcode(z80, (char *)"RET_Z", (char *)"If condition Z is true, the top stack entry is popped into PC");
-            if(LSB(z80->registers.AF) & Z_FLAG) {M_RET(z80); } break;
+            if(LSB(z80->registers.AF) & Z_FLAG) {M_RET(z80, memory); } break;
         case RET_C:        debug_opcode(z80, (char *)"RET_C", (char *)"If condition C is true, the top stack entry is popped into PC");
-            if(LSB(z80->registers.AF) & C_FLAG) {M_RET(z80); } break;
+            if(LSB(z80->registers.AF) & C_FLAG) {M_RET(z80, memory); } break;
         case RET_PE:        debug_opcode(z80, (char *)"RET_PE", (char *)"If condition P is true, the top stack entry is popped into PC");
-            if(LSB(z80->registers.AF) & P_FLAG) {M_RET(z80); } break;
+            if(LSB(z80->registers.AF) & P_FLAG) {M_RET(z80, memory); } break;
         case RET_M:        debug_opcode(z80, (char *)"RET_M", (char *)"If condition S is true, the top stack entry is popped into PC");
-            if(LSB(z80->registers.AF) & S_FLAG) {M_RET(z80); } break;
+            if(LSB(z80->registers.AF) & S_FLAG) {M_RET(z80, memory); } break;
 
         case JR:        debug_opcode(z80, (char *)"JR", (char *)"The signed value BYTE is added to PC. The jump is measured from the start of the instruction opcode.");
-            M_JR(z80); break;
+            M_JR(z80, memory); break;
         case JR_NZ:        debug_opcode(z80, (char *)"JR_NZ", (char *)"If condition Z is false, the signed value BYTE is added to PC. The jump is measured from the start of the instruction opcode.");
-            if((LSB(z80->registers.AF) & Z_FLAG) == 0x0) { M_JR(z80); } else z80->registers.PC++; break;
+            if((LSB(z80->registers.AF) & Z_FLAG) == 0x0) { M_JR(z80, memory); } else z80->registers.PC++; break;
         case JR_NC:        debug_opcode(z80, (char *)"JR_NC", (char *)"If condition C is false, the signed value BYTE is added to PC. The jump is measured from the start of the instruction opcode.");
-            if((LSB(z80->registers.AF) & C_FLAG) == 0x0) { M_JR(z80); } else z80->registers.PC++; break;
+            if((LSB(z80->registers.AF) & C_FLAG) == 0x0) { M_JR(z80, memory); } else z80->registers.PC++; break;
         
         case JR_Z:        debug_opcode(z80, (char *)"JR_Z", (char *)"If condition Z is true, the signed value BYTE is added to PC. The jump is measured from the start of the instruction opcode.");
-            if(LSB(z80->registers.AF) & Z_FLAG) { M_JR(z80); } else z80->registers.PC++; break;
+            if(LSB(z80->registers.AF) & Z_FLAG) { M_JR(z80, memory); } else z80->registers.PC++; break;
         case JR_C:        debug_opcode(z80, (char *)"JR_C", (char *)"If condition C is true, the signed value BYTE is added to PC. The jump is measured from the start of the instruction opcode.");
-            if(LSB(z80->registers.AF) & C_FLAG) { M_JR(z80); } else z80->registers.PC++; break;
+            if(LSB(z80->registers.AF) & C_FLAG) { M_JR(z80, memory); } else z80->registers.PC++; break;
 
         case JP:        debug_opcode(z80, (char *)"JP", (char *)"WORD is copied to PC");
-            M_JP(z80); break;
+            M_JP(z80, memory); break;
         case JP_NZ:        debug_opcode(z80, (char *)"JP_NZ", (char *)"If condition Z is false, WORD is copied to PC");
-            if((LSB(z80->registers.AF) & Z_FLAG) == 0x0) { M_JP(z80); } else z80->registers.PC += 2; break;
+            if((LSB(z80->registers.AF) & Z_FLAG) == 0x0) { M_JP(z80, memory); } else z80->registers.PC += 2; break;
         case JP_NC:        debug_opcode(z80, (char *)"JP_NC", (char *)"If condition C is false, WORD is copied to PC");
-            if((LSB(z80->registers.AF) & C_FLAG) == 0x0) { M_JP(z80); } else z80->registers.PC += 2; break;
+            if((LSB(z80->registers.AF) & C_FLAG) == 0x0) { M_JP(z80, memory); } else z80->registers.PC += 2; break;
         case JP_PO:        debug_opcode(z80, (char *)"JP_PO", (char *)"If condition P is false, WORD is copied to PC");
-            if((LSB(z80->registers.AF) & P_FLAG) == 0x0) { M_JP(z80); } else z80->registers.PC += 2; break;
+            if((LSB(z80->registers.AF) & P_FLAG) == 0x0) { M_JP(z80, memory); } else z80->registers.PC += 2; break;
         case JP_P:        debug_opcode(z80, (char *)"JP_P", (char *)"If condition S is false, WORD is copied to PC");
-            if((LSB(z80->registers.AF) & S_FLAG) == 0x0) { M_JP(z80); } else z80->registers.PC += 2; break;
+            if((LSB(z80->registers.AF) & S_FLAG) == 0x0) { M_JP(z80, memory); } else z80->registers.PC += 2; break;
         
         case JP_Z:        debug_opcode(z80, (char *)"JP_Z", (char *)"If condition Z is true, WORD is copied to PC");
-            if(LSB(z80->registers.AF) & Z_FLAG) { M_JP(z80); } else z80->registers.PC += 2; break;
+            if(LSB(z80->registers.AF) & Z_FLAG) { M_JP(z80, memory); } else z80->registers.PC += 2; break;
         case JP_C:        debug_opcode(z80, (char *)"JP_C", (char *)"If condition C is true, WORD is copied to PC");
-            if(LSB(z80->registers.AF) & C_FLAG) { M_JP(z80); } else z80->registers.PC += 2; break;
+            if(LSB(z80->registers.AF) & C_FLAG) { M_JP(z80, memory); } else z80->registers.PC += 2; break;
         case JP_PE:        debug_opcode(z80, (char *)"JP_PE", (char *)"If condition P is true, WORD is copied to PC");
-            if(LSB(z80->registers.AF) & P_FLAG) { M_JP(z80); } else z80->registers.PC += 2; break;
+            if(LSB(z80->registers.AF) & P_FLAG) { M_JP(z80, memory); } else z80->registers.PC += 2; break;
         case JP_M:        debug_opcode(z80, (char *)"JP_M", (char *)"If condition S is true, WORD is copied to PC");
-            if(LSB(z80->registers.AF) & S_FLAG) { M_JP(z80); } else z80->registers.PC += 2; break;
+            if(LSB(z80->registers.AF) & S_FLAG) { M_JP(z80, memory); } else z80->registers.PC += 2; break;
 
         //214
         
         case DJNZ:        debug_opcode(z80, (char *)"DJNZ", (char *)"The B register is decremented, and if not zero, the signed value BYTE is added to PC. The jump is measured from the start of the instruction opcode.");
             SET_MSB(z80->registers.BC, MSB(z80->registers.BC)-1);
             if(MSB(z80->registers.BC) > 0) { 
-                M_JR(z80); 
+                M_JR(z80, memory); 
             } 
                 else z80->registers.PC++;
             break;
@@ -546,12 +546,12 @@
 
 
         case OUTA:        debug_opcode(z80, (char *)"OUTA", (char *)"The value of A is written on port BYTE");
-            I = OpZ80(z80, z80->registers.PC);
+            I = OpZ80(z80, memory, z80->registers.PC);
             OutZ80(z80, I | (z80->registers.AF & 0xFF00), MSB(z80->registers.AF));
             break;
 
         case INA:        debug_opcode(z80, (char *)"INA", (char *)"A byte from port BYTE is written to A");
-            I = OpZ80(z80, z80->registers.PC);
+            I = OpZ80(z80, memory, z80->registers.PC);
             SET_MSB(z80->registers.AF, InZ80(z80, I | (z80->registers.AF & 0xFF00)));
             break;
 
@@ -580,41 +580,41 @@
             break;
 
         case RST00:       debug_opcode(z80, (char *)"RST00", (char *)"The current PC value plus one is pushed onto the stack, then is loaded with 00h"); 
-            M_RST(z80, 0x0000);break;      
+            M_RST(z80, memory, 0x0000);break;      
         case RST08:       debug_opcode(z80, (char *)"RST08", (char *)"The current PC value plus one is pushed onto the stack, then is loaded with 08h"); 
-            M_RST(z80, 0x0008);break;
+            M_RST(z80, memory, 0x0008);break;
         case RST10:       debug_opcode(z80, (char *)"RST10", (char *)"The current PC value plus one is pushed onto the stack, then is loaded with 10h"); 
-            M_RST(z80, 0x0010);break;
+            M_RST(z80, memory, 0x0010);break;
         case RST18:       debug_opcode(z80, (char *)"RST18", (char *)"The current PC value plus one is pushed onto the stack, then is loaded with 18h"); 
-            M_RST(z80, 0x0018);break;
+            M_RST(z80, memory, 0x0018);break;
         case RST20:       debug_opcode(z80, (char *)"RST20", (char *)"The current PC value plus one is pushed onto the stack, then is loaded with 20h"); 
-            M_RST(z80, 0x0020);break;
+            M_RST(z80, memory, 0x0020);break;
         case RST28:       debug_opcode(z80, (char *)"RST28", (char *)"The current PC value plus one is pushed onto the stack, then is loaded with 28h");
-            M_RST(z80, 0x0028);break;
+            M_RST(z80, memory, 0x0028);break;
         case RST30:       debug_opcode(z80, (char *)"RST30", (char *)"The current PC value plus one is pushed onto the stack, then is loaded with 30h");
-            M_RST(z80, 0x0030);break;
+            M_RST(z80, memory, 0x0030);break;
         case RST38:       debug_opcode(z80, (char *)"RST38", (char *)"The current PC value plus one is pushed onto the stack, then is loaded with 38h"); 
-            M_RST(z80, 0x0038);break;
+            M_RST(z80, memory, 0x0038);break;
           
         case PUSH_AF:       debug_opcode(z80, (char *)"PUSH_AF", (char *)"SP is decremented and A is stored into the memory location pointed to by SP. SP is decremented again and F is stored pointed to by SP"); 
-            M_PUSH(z80, AF);break;
+            M_PUSH(z80, memory,AF);break;
         case PUSH_BC:       debug_opcode(z80, (char *)"PUSH_BC", (char *)"SP is decremented and B is stored into the memory location pointed to by SP. SP is decremented again and C is stored pointed to by SP"); 
-            M_PUSH(z80, BC);break;
+            M_PUSH(z80, memory,BC);break;
         case PUSH_DE:       debug_opcode(z80, (char *)"PUSH_DE", (char *)"SP is decremented and D is stored into the memory location pointed to by SP. SP is decremented again and E is stored pointed to by SP"); 
-            M_PUSH(z80, DE);break;
+            M_PUSH(z80, memory,DE);break;
         case PUSH_HL:       debug_opcode(z80, (char *)"PUSH_HL", (char *)"SP is decremented and H is stored into the memory location pointed to by SP. SP is decremented again and L is stored pointed to by SP"); 
-            M_PUSH(z80, HL);break;
+            M_PUSH(z80, memory,HL);break;
             
         //239
 
         case POP_AF:       debug_opcode(z80, (char *)"POP_AF", (char *)"The memory location pointed to by SP is stored into F and SP is incremented. The memory location pointed to by SP is stored into A and SP is incremented again"); 
-           M_POP(z80, AF);break;
+           M_POP(z80, memory,AF);break;
         case POP_BC:       debug_opcode(z80, (char *)"POP_BC", (char *)"The memory location pointed to by SP is stored into C and SP is incremented. The memory location pointed to by SP is stored into B and SP is incremented again"); 
-           M_POP(z80, BC);break;
+           M_POP(z80, memory,BC);break;
         case POP_DE:       debug_opcode(z80, (char *)"POP_DE", (char *)"The memory location pointed to by SP is stored into E and SP is incremented. The memory location pointed to by SP is stored into D and SP is incremented again"); 
-           M_POP(z80, DE);break;
+           M_POP(z80, memory,DE);break;
         case POP_HL:       debug_opcode(z80, (char *)"POP_HL", (char *)"The memory location pointed to by SP is stored into L and SP is incremented. The memory location pointed to by SP is stored into H and SP is incremented again"); 
-           M_POP(z80, HL);break;
+           M_POP(z80, memory,HL);break;
 
         case EX_AF_AFl:      debug_opcode(z80, (char *)"EX_AF_AFl", (char*)"Exchanges the 16bit contents of AF and AFl"); 
             J = z80->registers.AF;
@@ -628,11 +628,11 @@
             break;
         case EX_xSP_HL:      debug_opcode(z80, (char *)"EX_xSP_HL", (char*)"Exchanges (SP) with L, and (SP+1) with H");
             J = z80->registers.HL;
-            SET_WORD(z80->registers.HL, RdZ80(z80, z80->registers.SP),  
-                                        RdZ80(z80, z80->registers.SP + 1)); 
+            SET_WORD(z80->registers.HL, RdZ80(memory, z80->registers.SP),  
+                                        RdZ80(memory, z80->registers.SP + 1)); 
             
-            WrZ80(z80, z80->registers.SP, LSB(J));
-            WrZ80(z80, z80->registers.SP+1, MSB(J));
+            WrZ80(memory, z80->registers.SP, LSB(J));
+            WrZ80(memory, z80->registers.SP+1, MSB(J));
             
             break;
         case EXX:      debug_opcode(z80, (char *)"EXX", (char*)"Exchanges the 16bit contents of BC, DE and HL with BC', DE' and HL'"); 

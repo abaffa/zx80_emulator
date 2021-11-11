@@ -1,5 +1,6 @@
 #include "z80.h"
 #include "z80_opcodes.h"
+#include "byte_utils.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <memory.h>
@@ -383,22 +384,9 @@ static const unsigned char Cycles[256] =
 void z80_init(struct z80* z80)
 {
     memset(z80, 0, sizeof(struct z80));
-
-    z80->memory.memory = (unsigned char*) malloc(Z80_MEMORY_SIZE * sizeof(unsigned char));
-    //memcpy(z80->memory.memory, z80_default_character_set, sizeof(z80_default_character_set));
-}
-
-void z80_load(struct z80* z80, const char* buf, size_t size, unsigned short A)
-{
-    //assert(size + Z80_PROGRAM_LOAD_ADDRESS < Z80_MEMORY_SIZE);
-    //memcpy(&z80->memory.memory[Z80_PROGRAM_LOAD_ADDRESS], buf, size);
-
-    //memcpy(z80->memory.memory, buf, size);
-    memcpy(&z80->memory.memory[A], buf, size);
-    
-
-    z80->registers.PC = 0;
-    //z80->registers.PC = Z80_PROGRAM_LOAD_ADDRESS;
+	
+	z80->registers.PC = 0;
+	//z80->registers.PC = Z80_PROGRAM_LOAD_ADDRESS;
 }
 
 void z80_reset(struct z80 *z80)
@@ -461,31 +449,33 @@ void z80_reset(struct z80 *z80)
 
 
 
-unsigned char RdZ80(struct z80* z80, unsigned short Address) {
-    unsigned short A = Address;
-    if(A >= 0x8000)
-        A = A - 0x8000;
-    if(A >= 0x4000)
-        A = ((A - 0x4000) % 0x400) + 0x4000;
 
-     return z80->memory.memory[A];  //(RAM[A>>13][A&0x1FFF]); 
-}
 
-unsigned char OpZ80(struct z80* z80, unsigned short A)
+unsigned char OpZ80(struct z80* z80, unsigned char* memory, unsigned short A)
 {
-    unsigned char b = RdZ80(z80, A);   //(RAM[A>>13][A&0x1FFF]); 
+    unsigned char b = RdZ80(memory, A);   //(RAM[A>>13][A&0x1FFF]); 
     z80->registers.PC++;
      return b;
 }
 
-void WrZ80(struct z80* z80, unsigned short Address, unsigned char V)
+
+unsigned char RdZ80(unsigned char* memory, unsigned short Address) {
+	unsigned short A = Address;
+	if (A >= 0x8000)
+		A = A - 0x8000;
+	if (A >= 0x4000)
+		A = ((A - 0x4000) % 0x400) + 0x4000;
+
+	return memory[A];  //(RAM[A>>13][A&0x1FFF]); 
+}
+void WrZ80(unsigned char* memory, unsigned short Address, unsigned char V)
 {
     unsigned short A = Address;
     if(A >= 0x8000)
         A = A - 0x8000;
     if(A >= 0x4000)
         A = ((A - 0x4000) % 0x400) + 0x4000;
-    z80->memory.memory[A]=V; 
+    memory[A]=V; 
 }
 
 
@@ -528,7 +518,7 @@ void JumpZ80(struct z80* z80, unsigned short PC) {}
 unsigned short LoopZ80(struct z80* z80){ return INT_NONE;}
 
 
-void IntZ80(struct z80* z80, unsigned short Vector)
+void IntZ80(struct z80* z80, unsigned char* memory, unsigned short Vector)
 {
   /* If HALTed, take CPU off HALT instruction */
   if(z80->registers.IFF & IFF_HALT) { z80->registers.PC++; z80->registers.IFF &= ~IFF_HALT; }
@@ -536,7 +526,7 @@ void IntZ80(struct z80* z80, unsigned short Vector)
   if((z80->registers.IFF & IFF_1)||(Vector == INT_NMI))
   {
     /* Save PC on stack */
-    M_PUSH(z80, PC);
+    M_PUSH(z80, memory, PC);
 
     /* Automatically reset IRequest if needed */
     if(z80->IAutoReset && (Vector == z80->IRequest)) z80->IRequest = INT_NONE;
@@ -562,8 +552,8 @@ void IntZ80(struct z80* z80, unsigned short Vector)
       /* Make up the vector address */
       Vector = (Vector & 0xFF) | ((unsigned short)(z80->registers.I) << 8);
       /* Read the vector */
-      SET_LSB(z80->registers.PC, RdZ80(z80, Vector++));
-      SET_MSB(z80->registers.PC, RdZ80(z80, Vector));
+      SET_LSB(z80->registers.PC, RdZ80(memory, Vector++));
+      SET_MSB(z80->registers.PC, RdZ80(memory, Vector));
       JumpZ80(z80, z80->registers.PC);
       /* Done */
       return;
@@ -600,10 +590,10 @@ void debug_opcode(struct z80* z80, char *op, char *desc){
     }
 }
 
-void debug_opcode_reg_word(struct z80* z80, char *op, char *desc){
+void debug_opcode_reg_word(struct z80* z80, unsigned char* memory, char *op, char *desc){
     if(DEBUG_OPCODE == 1){
         sprintf(z80->last_op_desc, "opcode: %s_%04x\n%s\n\n", op, 
-                                WORD(z80->memory.memory[z80->registers.PC], z80->memory.memory[z80->registers.PC+1]), 
+                                WORD(memory[z80->registers.PC], memory[z80->registers.PC+1]), 
                                 desc);
         //printf("%s", z80->last_op_desc);
 
@@ -612,10 +602,10 @@ void debug_opcode_reg_word(struct z80* z80, char *op, char *desc){
     }
 }
 
-void debug_opcode_reg_byte(struct z80* z80, char *op, char *desc){
+void debug_opcode_reg_byte(struct z80* z80, unsigned char* memory, char *op, char *desc){
     if(DEBUG_OPCODE == 1){
         sprintf(z80->last_op_desc, "opcode: %s_%02x\n%s\n\n", op, 
-                                z80->memory.memory[z80->registers.PC], 
+                                memory[z80->registers.PC], 
                                 desc);
         //printf("%s", z80->last_op_desc);
 
@@ -623,11 +613,11 @@ void debug_opcode_reg_byte(struct z80* z80, char *op, char *desc){
         //printf("%s\n\n", desc);
     }
 }
-void debug_opcode_reg_byte_byte(struct z80* z80, char *op, char *desc){
+void debug_opcode_reg_byte_byte(struct z80* z80, unsigned char* memory, char *op, char *desc){
     if(DEBUG_OPCODE == 1){
         sprintf(z80->last_op_desc, "opcode: %s_%02x_%02x\n%s\n\n", op, 
-                                z80->memory.memory[z80->registers.PC], 
-                                z80->memory.memory[z80->registers.PC+1], 
+                                memory[z80->registers.PC], 
+                                memory[z80->registers.PC+1], 
                                 desc);
         //printf("%s", z80->last_op_desc);
 
@@ -644,7 +634,7 @@ void debug_opcode_reg_byte_byte(struct z80* z80, char *op, char *desc){
 #include "z80_extended_code_FD.h"
 
 
-void z80_exec(struct z80* z80)
+void z80_exec(struct z80* z80, unsigned char* memory)
 {
     unsigned char I; //register
     unsigned short J; //register
@@ -658,7 +648,7 @@ void z80_exec(struct z80* z80)
     //unsigned char opcode = z80_memory_get(&z80->memory, z80->registers.PC);
     //z80->registers.PC += 1;
 
-    I = OpZ80(z80, z80->registers.PC);
+    I = OpZ80(z80, memory, z80->registers.PC);
     if(z80->registers.PC - 1 >= 0xC000 && I != 0x76)
         I = 0;
     unsigned char opcode = I;
@@ -680,7 +670,7 @@ void z80_exec(struct z80* z80)
             z80->IBackup = 0;
             z80->registers.PC = 0;
             */
-            z80_exec_extended_CB(z80);
+            z80_exec_extended_CB(z80, memory);
             break;
         case PFX_DD: //IX instructions (DD) ..... IX bit instructions (DDCB)
             z80->registers.R = (z80->registers.R  & 0x80) | ((z80->registers.R + 1) & 0x7F);    
@@ -691,7 +681,7 @@ void z80_exec(struct z80* z80)
             z80->IBackup = 0;
             z80->registers.PC = 0;
             */
-            z80_exec_extended_DD(z80);
+            z80_exec_extended_DD(z80, memory);
             break;
         case PFX_ED: //Extended instructions (ED)
             z80->registers.R = (z80->registers.R  & 0x80) | ((z80->registers.R + 1) & 0x7F);
@@ -702,7 +692,7 @@ void z80_exec(struct z80* z80)
             z80->IBackup = 0;
             z80->registers.PC = 0;
             */
-            z80_exec_extended_ED(z80);
+            z80_exec_extended_ED(z80, memory);
             break;
         case PFX_FD: //IY instructions (FD) ...... IY bit instructions (FDCB)
             z80->registers.R = (z80->registers.R  & 0x80) | ((z80->registers.R + 1) & 0x7F);
@@ -713,7 +703,7 @@ void z80_exec(struct z80* z80)
             z80->IBackup = 0;
             z80->registers.PC = 0;
             */
-            z80_exec_extended_FD(z80);
+            z80_exec_extended_FD(z80, memory);
             break;                                    
 
         default:{
@@ -724,7 +714,7 @@ void z80_exec(struct z80* z80)
             printf
             (
             "[Z80 %lX] Unrecognized instruction: %02X at PC=%04X\n",
-            (long)z80->User,OpZ80(z80, z80->registers.PC-1),z80->registers.PC-1
+            (long)z80->User,OpZ80(z80, memory, z80->registers.PC-1),z80->registers.PC-1
             );
         }
 
@@ -773,7 +763,7 @@ void z80_exec(struct z80* z80)
             }
 
 			if (J == INT_QUIT) return;// (z80->registers.PC); /* Exit if INT_QUIT */
-            if(J != INT_NONE) IntZ80(z80, J);   /* Int-pt if needed */
+            if(J != INT_NONE) IntZ80(z80, memory, J);   /* Int-pt if needed */
         }
         
     }

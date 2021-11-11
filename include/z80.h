@@ -2,7 +2,7 @@
 #define Z80_H
 
 #include "config.h"
-#include "z80_memory.h"
+//#include "z80_memory.h"
 #include "z80_registers.h"
 #include <stddef.h>
 
@@ -41,7 +41,7 @@
 
 struct z80
 {
-    struct z80_memory memory;
+    //struct z80_memory memory;
     struct z80_registers registers;
 
     int IPeriod,ICount; /* Set IPeriod to number of CPU cycles */
@@ -67,13 +67,12 @@ struct z80
 };
 
 void z80_init(struct z80* z80);
-void z80_load(struct z80* z80, const char* buf, size_t size, unsigned short A);
-void z80_exec(struct z80* z80);
+void z80_exec(struct z80* z80, unsigned char* memory);
 void z80_reset(struct z80 *z80);
 
-unsigned char RdZ80(struct z80* z80, unsigned short Address);
-void WrZ80(struct z80* z80, unsigned short Address, unsigned char V);
-void IntZ80(struct z80* z80, unsigned short Vector);
+unsigned char RdZ80(unsigned char* memory, unsigned short Address);
+void WrZ80(unsigned char* memory, unsigned short Address, unsigned char V);
+void IntZ80(struct z80* z80, unsigned char* memory, unsigned short Vector);
 void JumpZ80(struct z80* z80, unsigned short PC);
 
 #endif

@@ -415,3 +415,4 @@ MigrationBackup/
 FodyWeavers.xsd
 
 
+/zx80_vc/zx80_emul/zx80_emul/packages.config

@@ -10,7 +10,7 @@ struct zx80_keyboard
 };
 
 void zx80_keyboard_set_map(struct zx80_keyboard* keyboard, const unsigned int* map);
-int zx80_keyboard_map(struct zx80_keyboard* keyboard, char key);
+int zx80_keyboard_map(struct zx80_keyboard* keyboard, int key);
 void zx80_keyboard_down(struct zx80_keyboard* keyboard, int key);
 void zx80_keyboard_up(struct zx80_keyboard* keyboard, int key);
 bool zx80_keyboard_is_down(struct zx80_keyboard* keyboard, int key);

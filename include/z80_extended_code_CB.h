@@ -19,11 +19,11 @@ static const unsigned char CyclesCB[256] =
 };
 
 
-static void z80_exec_extended_CB(struct z80* z80)
+static void z80_exec_extended_CB(struct z80* z80, unsigned char* memory)
 {
     unsigned char I; //register
 
-    I = OpZ80(z80, z80->registers.PC);
+    I = OpZ80(z80, memory, z80->registers.PC);
     unsigned char opcode = I;
     z80->ICount -= CyclesCB[I];
 
@@ -44,7 +44,7 @@ static void z80_exec_extended_CB(struct z80* z80)
         case RLC_L:      debug_opcode(z80, (char *)"RLC_L", (char *)"The contents of L are rotated left one bit position. The content of bit 7 are copied to the carry flag and bit 0.");
             M_RLC_L(z80, z80->registers.HL); break; 
         case RLC_xHL:      debug_opcode(z80, (char *)"RLC_xHL", (char *)"The contents of (HL) are rotated left one bit position. The content of bit 7 are copied to the carry flag and bit 0.");
-            I = RdZ80(z80, z80->registers.HL); M_RLC(z80, I); WrZ80(z80,z80->registers.HL, I); break; 
+            I = RdZ80(memory, z80->registers.HL); M_RLC(z80, I); WrZ80(memory,z80->registers.HL, I); break; 
 
         case RRC_A:      debug_opcode(z80, (char *)"RRC_A", (char *)"The contents of A are rotated right one bit position. The content of bit 0 are copied to the carry flag and bit 7.");
             M_RRC_H(z80, z80->registers.AF); break; 
@@ -61,7 +61,7 @@ static void z80_exec_extended_CB(struct z80* z80)
         case RRC_L:      debug_opcode(z80, (char *)"RRC_L", (char *)"The contents of L are rotated right one bit position. The content of bit 0 are copied to the carry flag and bit 7.");
             M_RRC_L(z80, z80->registers.HL); break; 
         case RRC_xHL:      debug_opcode(z80, (char *)"RRC_xHL", (char *)"The contents of (HL) are rotated right one bit position. The content of bit 0 are copied to the carry flag and bit 7.");
-            I = RdZ80(z80, z80->registers.HL); M_RRC(z80, I); WrZ80(z80,z80->registers.HL, I); break; 
+            I = RdZ80(memory, z80->registers.HL); M_RRC(z80, I); WrZ80(memory,z80->registers.HL, I); break; 
 
         case RL_A:      debug_opcode(z80, (char *)"RL_A", (char *)"The contents of A are rotated left one bit position. The content of bit 7 are copied to the carry flag and the previous contents of the carry flag are copied to bit 0.");
             M_RL_H(z80, z80->registers.AF); break; 
@@ -78,7 +78,7 @@ static void z80_exec_extended_CB(struct z80* z80)
         case RL_L:      debug_opcode(z80, (char *)"RL_L", (char *)"The contents of L are rotated left one bit position. The content of bit 7 are copied to the carry flag and the previous contents of the carry flag are copied to bit 0.");
             M_RL_L(z80, z80->registers.HL); break; 
         case RL_xHL:      debug_opcode(z80, (char *)"RL_xHL", (char *)"The contents of (HL) are rotated left one bit position. The content of bit 7 are copied to the carry flag and the previous contents of the carry flag are copied to bit 0.");
-            I = RdZ80(z80, z80->registers.HL); M_RL(z80, I); WrZ80(z80,z80->registers.HL, I); break; 
+            I = RdZ80(memory, z80->registers.HL); M_RL(z80, I); WrZ80(memory,z80->registers.HL, I); break; 
 
         case RR_A:      debug_opcode(z80, (char *)"RR_A", (char *)"The contents of A are rotated right one bit position. The content of bit 0 are copied to the carry flag and the previous contents of the carry flag are copied to bit 7.");
             M_RR_H(z80, z80->registers.AF); break; 
@@ -95,7 +95,7 @@ static void z80_exec_extended_CB(struct z80* z80)
         case RR_L:      debug_opcode(z80, (char *)"RR_L", (char *)"The contents of L are rotated right one bit position. The content of bit 0 are copied to the carry flag and the previous contents of the carry flag are copied to bit 7.");
             M_RR_L(z80, z80->registers.HL); break; 
         case RR_xHL:      debug_opcode(z80, (char *)"RR_xHL", (char *)"The contents of (HL) are rotated right one bit position. The content of bit 0 are copied to the carry flag and the previous contents of the carry flag are copied to bit 7.");
-            I = RdZ80(z80, z80->registers.HL); M_RR(z80, I); WrZ80(z80,z80->registers.HL, I); break; 
+            I = RdZ80(memory, z80->registers.HL); M_RR(z80, I); WrZ80(memory,z80->registers.HL, I); break; 
 
         case SLA_A:      debug_opcode(z80, (char *)"SLA_A", (char *)"The contents of A are shifted left one bit position. The content of bit 7 are copied to the carry flag and a zero is put into bit 0.");
             M_SLA_H(z80, z80->registers.AF); break; 
@@ -112,7 +112,7 @@ static void z80_exec_extended_CB(struct z80* z80)
         case SLA_L:      debug_opcode(z80, (char *)"SLA_L", (char *)"The contents of L are shifted left one bit position. The content of bit 7 are copied to the carry flag and a zero is put into bit 0.");
             M_SLA_L(z80, z80->registers.HL); break; 
         case SLA_xHL:      debug_opcode(z80, (char *)"SLA_xHL", (char *)"The contents of (HL) are shifted left one bit position. The content of bit 7 are copied to the carry flag and a zero is put into bit 0.");
-            I = RdZ80(z80, z80->registers.HL); M_SLA(z80, I); WrZ80(z80,z80->registers.HL, I); break; 
+            I = RdZ80(memory, z80->registers.HL); M_SLA(z80, I); WrZ80(memory,z80->registers.HL, I); break; 
 
         case SRA_A:      debug_opcode(z80, (char *)"SRA_A", (char *)"The contents of A are shifted right one bit position. The content of bit 0 are copied to the carry flag and the previous contents of bit 7 are unchanged.");
             M_SRA_H(z80, z80->registers.AF); break; 
@@ -129,7 +129,7 @@ static void z80_exec_extended_CB(struct z80* z80)
         case SRA_L:      debug_opcode(z80, (char *)"SRA_L", (char *)"The contents of L are shifted right one bit position. The content of bit 0 are copied to the carry flag and the previous contents of bit 7 are unchanged.");
             M_SRA_L(z80, z80->registers.HL); break; 
         case SRA_xHL:      debug_opcode(z80, (char *)"SRA_xHL", (char *)"The contents of (HL) are shifted right one bit position. The content of bit 0 are copied to the carry flag and the previous contents of bit 7 are unchanged.");
-            I = RdZ80(z80, z80->registers.HL); M_SRA(z80, I); WrZ80(z80,z80->registers.HL, I); break; 
+            I = RdZ80(memory, z80->registers.HL); M_SRA(z80, I); WrZ80(memory,z80->registers.HL, I); break; 
 
         case SLL_A:      debug_opcode(z80, (char *)"SLL_A", (char *)"The contents of A are shifted left one bit position. The content of bit 7 are put into the carry flag and a one is put into bit 0.");
             M_SLL_H(z80, z80->registers.AF); break; 
@@ -146,7 +146,7 @@ static void z80_exec_extended_CB(struct z80* z80)
         case SLL_L:      debug_opcode(z80, (char *)"SLL_L", (char *)"The contents of L are shifted left one bit position. The content of bit 7 are put into the carry flag and a one is put into bit 0.");
             M_SLL_L(z80, z80->registers.HL); break; 
         case SLL_xHL:      debug_opcode(z80, (char *)"SLL_xHL", (char *)"The contents of (HL) are shifted left one bit position. The content of bit 7 are put into the carry flag and a one is put into bit 0.");
-            I = RdZ80(z80, z80->registers.HL); M_SLL(z80, I); WrZ80(z80,z80->registers.HL, I); break; 
+            I = RdZ80(memory, z80->registers.HL); M_SLL(z80, I); WrZ80(memory,z80->registers.HL, I); break; 
 
         case SRL_A:      debug_opcode(z80, (char *)"SRL_A", (char *)"The contents of A are shifted right one bit position. The content of bit 0 are copied to the carry flag and a zero is put into bit 7.");
             M_SRL_H(z80, z80->registers.AF); break; 
@@ -163,7 +163,7 @@ static void z80_exec_extended_CB(struct z80* z80)
         case SRL_L:      debug_opcode(z80, (char *)"SRL_L", (char *)"The contents of L are shifted right one bit position. The content of bit 0 are copied to the carry flag and a zero is put into bit 7.");
             M_SRL_L(z80, z80->registers.HL); break; 
         case SRL_xHL:      debug_opcode(z80, (char *)"SRL_xHL", (char *)"The contents of (HL) are shifted right one bit position. The content of bit 0 are copied to the carry flag and a zero is put into bit 7.");
-            I = RdZ80(z80, z80->registers.HL); M_SRL(z80, I); WrZ80(z80,z80->registers.HL, I); break; 
+            I = RdZ80(memory, z80->registers.HL); M_SRL(z80, I); WrZ80(memory,z80->registers.HL, I); break; 
 
         case BIT0_A:      debug_opcode(z80, (char *)"BIT0_A", (char *)"Test bit 0 of A");
             M_BIT(z80, 0, MSB(z80->registers.AF)); break;
@@ -180,7 +180,7 @@ static void z80_exec_extended_CB(struct z80* z80)
         case BIT0_L:      debug_opcode(z80, (char *)"BIT0_L", (char *)"Test bit 0 of L");
             M_BIT(z80, 0, LSB(z80->registers.HL)); break;
         case BIT0_xHL:      debug_opcode(z80, (char *)"BIT0_xHL", (char *)"Test bit 0 of (HL)");
-            I = RdZ80(z80, z80->registers.HL); M_BIT(z80, 0, I); break; 
+            I = RdZ80(memory, z80->registers.HL); M_BIT(z80, 0, I); break; 
 
         case BIT1_A:      debug_opcode(z80, (char *)"BIT1_A", (char *)"Test bit 1 of A");
             M_BIT(z80, 1, MSB(z80->registers.AF)); break;
@@ -197,7 +197,7 @@ static void z80_exec_extended_CB(struct z80* z80)
         case BIT1_L:      debug_opcode(z80, (char *)"BIT1_L", (char *)"Test bit 1 of L");
             M_BIT(z80, 1, LSB(z80->registers.HL)); break;
         case BIT1_xHL:      debug_opcode(z80, (char *)"BIT1_xHL", (char *)"Test bit 1 of (HL)");
-            I = RdZ80(z80, z80->registers.HL); M_BIT(z80, 1, I); break; 
+            I = RdZ80(memory, z80->registers.HL); M_BIT(z80, 1, I); break; 
     
         case BIT2_A:      debug_opcode(z80, (char *)"BIT2_A", (char *)"Test bit 2 of A");
             M_BIT(z80, 2, MSB(z80->registers.AF)); break;
@@ -214,7 +214,7 @@ static void z80_exec_extended_CB(struct z80* z80)
         case BIT2_L:      debug_opcode(z80, (char *)"BIT2_L", (char *)"Test bit 2 of L");
             M_BIT(z80, 2, LSB(z80->registers.HL)); break;
         case BIT2_xHL:      debug_opcode(z80, (char *)"BIT2_xHL", (char *)"Test bit 2 of (HL)");
-            I = RdZ80(z80, z80->registers.HL); M_BIT(z80, 2, I); break; 
+            I = RdZ80(memory, z80->registers.HL); M_BIT(z80, 2, I); break; 
 
         case BIT3_A:      debug_opcode(z80, (char *)"BIT3_A", (char *)"Test bit 3 of A");
             M_BIT(z80, 3, MSB(z80->registers.AF)); break;
@@ -231,7 +231,7 @@ static void z80_exec_extended_CB(struct z80* z80)
         case BIT3_L:      debug_opcode(z80, (char *)"BIT3_L", (char *)"Test bit 3 of L");
             M_BIT(z80, 3, LSB(z80->registers.HL)); break;
         case BIT3_xHL:      debug_opcode(z80, (char *)"BIT3_xHL", (char *)"Test bit 3 of (HL)");
-            I = RdZ80(z80, z80->registers.HL); M_BIT(z80, 3, I); break; 
+            I = RdZ80(memory, z80->registers.HL); M_BIT(z80, 3, I); break; 
 
         case BIT4_A:      debug_opcode(z80, (char *)"BIT4_A", (char *)"Test bit 4 of A");
             M_BIT(z80, 4, MSB(z80->registers.AF)); break;
@@ -248,7 +248,7 @@ static void z80_exec_extended_CB(struct z80* z80)
         case BIT4_L:      debug_opcode(z80, (char *)"BIT4_L", (char *)"Test bit 4 of L");
             M_BIT(z80, 4, LSB(z80->registers.HL)); break;
         case BIT4_xHL:      debug_opcode(z80, (char *)"BIT4_xHL", (char *)"Test bit 4 of (HL)");
-            I = RdZ80(z80, z80->registers.HL); M_BIT(z80, 4, I); break; 
+            I = RdZ80(memory, z80->registers.HL); M_BIT(z80, 4, I); break; 
     
         case BIT5_A:      debug_opcode(z80, (char *)"BIT5_A", (char *)"Test bit 5 of A");
             M_BIT(z80, 5, MSB(z80->registers.AF)); break;
@@ -265,7 +265,7 @@ static void z80_exec_extended_CB(struct z80* z80)
         case BIT5_L:      debug_opcode(z80, (char *)"BIT5_L", (char *)"Test bit 5 of L");
             M_BIT(z80, 5, LSB(z80->registers.HL)); break;
         case BIT5_xHL:      debug_opcode(z80, (char *)"BIT5_xHL", (char *)"Test bit 5 of (HL)");
-            I = RdZ80(z80, z80->registers.HL); M_BIT(z80, 5, I); break; 
+            I = RdZ80(memory, z80->registers.HL); M_BIT(z80, 5, I); break; 
 
         case BIT6_A:      debug_opcode(z80, (char *)"BIT6_A", (char *)"Test bit 6 of A");
             M_BIT(z80, 6, MSB(z80->registers.AF)); break;
@@ -282,7 +282,7 @@ static void z80_exec_extended_CB(struct z80* z80)
         case BIT6_L:      debug_opcode(z80, (char *)"BIT6_L", (char *)"Test bit 6 of L");
             M_BIT(z80, 6, LSB(z80->registers.HL)); break;
         case BIT6_xHL:      debug_opcode(z80, (char *)"BIT6_xHL", (char *)"Test bit 6 of (HL)");
-            I = RdZ80(z80, z80->registers.HL); M_BIT(z80, 6, I); break; 
+            I = RdZ80(memory, z80->registers.HL); M_BIT(z80, 6, I); break; 
 
         case BIT7_A:      debug_opcode(z80, (char *)"BIT7_A", (char *)"Test bit 7 of A");
             M_BIT(z80, 7, MSB(z80->registers.AF)); break;
@@ -299,7 +299,7 @@ static void z80_exec_extended_CB(struct z80* z80)
         case BIT7_L:      debug_opcode(z80, (char *)"BIT7_L", (char *)"Test bit 7 of L");
             M_BIT(z80, 7, LSB(z80->registers.HL)); break;
         case BIT7_xHL:      debug_opcode(z80, (char *)"BIT7_xHL", (char *)"Test bit 7 of (HL)");
-            I = RdZ80(z80, z80->registers.HL); M_BIT(z80, 7, I); break; 
+            I = RdZ80(memory, z80->registers.HL); M_BIT(z80, 7, I); break; 
 
 
         case SET0_A:      debug_opcode(z80, (char *)"SET0_A", (char *)"Set bit 0 of A");
@@ -317,7 +317,7 @@ static void z80_exec_extended_CB(struct z80* z80)
         case SET0_L:      debug_opcode(z80, (char *)"SET0_L", (char *)"Set bit 0 of L");
             M_SET_L(z80, 0, z80->registers.HL); break;
         case SET0_xHL:      debug_opcode(z80, (char *)"SET0_xHL", (char *)"Set bit 0 of (HL)");
-            I = RdZ80(z80, z80->registers.HL); M_SET(z80, 0, I); WrZ80(z80,z80->registers.HL, I); break; 
+            I = RdZ80(memory, z80->registers.HL); M_SET(z80, 0, I); WrZ80(memory,z80->registers.HL, I); break; 
         
         case SET1_A:      debug_opcode(z80, (char *)"SET1_A", (char *)"Set bit 1 of A");
             M_SET_H(z80, 1, z80->registers.AF); break;
@@ -334,7 +334,7 @@ static void z80_exec_extended_CB(struct z80* z80)
         case SET1_L:      debug_opcode(z80, (char *)"SET1_L", (char *)"Set bit 1 of L");
             M_SET_L(z80, 1, z80->registers.HL); break;
         case SET1_xHL:      debug_opcode(z80, (char *)"SET1_xHL", (char *)"Set bit 1 of (HL)");
-            I = RdZ80(z80, z80->registers.HL); M_SET(z80, 1, I); WrZ80(z80,z80->registers.HL, I); break; 
+            I = RdZ80(memory, z80->registers.HL); M_SET(z80, 1, I); WrZ80(memory,z80->registers.HL, I); break; 
         
         case SET2_A:      debug_opcode(z80, (char *)"SET2_A", (char *)"Set bit 2 of A");
             M_SET_H(z80, 2, z80->registers.AF); break;
@@ -351,7 +351,7 @@ static void z80_exec_extended_CB(struct z80* z80)
         case SET2_L:      debug_opcode(z80, (char *)"SET2_L", (char *)"Set bit 2 of L");
             M_SET_L(z80, 2, z80->registers.HL); break;
         case SET2_xHL:      debug_opcode(z80, (char *)"SET2_xHL", (char *)"Set bit 2 of (HL)");
-            I = RdZ80(z80, z80->registers.HL); M_SET(z80, 2, I); WrZ80(z80,z80->registers.HL, I); break; 
+            I = RdZ80(memory, z80->registers.HL); M_SET(z80, 2, I); WrZ80(memory,z80->registers.HL, I); break; 
         
         case SET3_A:      debug_opcode(z80, (char *)"SET3_A", (char *)"Set bit 3 of A");
             M_SET_H(z80, 3, z80->registers.AF); break;
@@ -368,7 +368,7 @@ static void z80_exec_extended_CB(struct z80* z80)
         case SET3_L:      debug_opcode(z80, (char *)"SET3_L", (char *)"Set bit 3 of L");
             M_SET_L(z80, 3, z80->registers.HL); break;
         case SET3_xHL:      debug_opcode(z80, (char *)"SET3_xHL", (char *)"Set bit 3 of (HL)");
-            I = RdZ80(z80, z80->registers.HL); M_SET(z80, 3, I); WrZ80(z80,z80->registers.HL, I); break; 
+            I = RdZ80(memory, z80->registers.HL); M_SET(z80, 3, I); WrZ80(memory,z80->registers.HL, I); break; 
         
         case SET4_A:      debug_opcode(z80, (char *)"SET4_A", (char *)"Set bit 4 of A");
             M_SET_H(z80, 4, z80->registers.AF); break;
@@ -385,7 +385,7 @@ static void z80_exec_extended_CB(struct z80* z80)
         case SET4_L:      debug_opcode(z80, (char *)"SET4_L", (char *)"Set bit 4 of L");
             M_SET_L(z80, 4, z80->registers.HL); break;
         case SET4_xHL:      debug_opcode(z80, (char *)"SET4_xHL", (char *)"Set bit 4 of (HL)");
-            I = RdZ80(z80, z80->registers.HL); M_SET(z80, 4, I); WrZ80(z80,z80->registers.HL, I); break; 
+            I = RdZ80(memory, z80->registers.HL); M_SET(z80, 4, I); WrZ80(memory,z80->registers.HL, I); break; 
         
         case SET5_A:      debug_opcode(z80, (char *)"SET5_A", (char *)"Set bit 5 of A");
             M_SET_H(z80, 5, z80->registers.AF); break;
@@ -402,7 +402,7 @@ static void z80_exec_extended_CB(struct z80* z80)
         case SET5_L:      debug_opcode(z80, (char *)"SET5_L", (char *)"Set bit 5 of L");
             M_SET_L(z80, 5, z80->registers.HL); break;
         case SET5_xHL:      debug_opcode(z80, (char *)"SET5_xHL", (char *)"Set bit 5 of (HL)");
-            I = RdZ80(z80, z80->registers.HL); M_SET(z80, 5, I); WrZ80(z80,z80->registers.HL, I); break; 
+            I = RdZ80(memory, z80->registers.HL); M_SET(z80, 5, I); WrZ80(memory,z80->registers.HL, I); break; 
         
         case SET6_A:      debug_opcode(z80, (char *)"SET6_A", (char *)"Set bit 6 of A");
             M_SET_H(z80, 6, z80->registers.AF); break;
@@ -419,7 +419,7 @@ static void z80_exec_extended_CB(struct z80* z80)
         case SET6_L:      debug_opcode(z80, (char *)"SET6_L", (char *)"Set bit 6 of L");
             M_SET_L(z80, 6, z80->registers.HL); break;
         case SET6_xHL:      debug_opcode(z80, (char *)"SET6_xHL", (char *)"Set bit 6 of (HL)");
-            I = RdZ80(z80, z80->registers.HL); M_SET(z80, 6, I); WrZ80(z80,z80->registers.HL, I); break; 
+            I = RdZ80(memory, z80->registers.HL); M_SET(z80, 6, I); WrZ80(memory,z80->registers.HL, I); break; 
         
         case SET7_A:      debug_opcode(z80, (char *)"SET7_A", (char *)"Set bit 7 of A");
             M_SET_H(z80, 7, z80->registers.AF); break;
@@ -436,7 +436,7 @@ static void z80_exec_extended_CB(struct z80* z80)
         case SET7_L:      debug_opcode(z80, (char *)"SET7_L", (char *)"Set bit 7 of L");
             M_SET_L(z80, 7, z80->registers.HL); break;
         case SET7_xHL:      debug_opcode(z80, (char *)"SET7_xHL", (char *)"Set bit 7 of (HL)");
-            I = RdZ80(z80, z80->registers.HL); M_SET(z80, 7, I); WrZ80(z80,z80->registers.HL, I); break; 
+            I = RdZ80(memory, z80->registers.HL); M_SET(z80, 7, I); WrZ80(memory,z80->registers.HL, I); break; 
         
         
         case RES0_A:      debug_opcode(z80, (char *)"RES0_A", (char *)"Reset bit 0 of A");
@@ -454,7 +454,7 @@ static void z80_exec_extended_CB(struct z80* z80)
         case RES0_L:      debug_opcode(z80, (char *)"RES0_L", (char *)"Reset bit 0 of L");
             M_RES_L(z80, 0, z80->registers.HL); break;
         case RES0_xHL:      debug_opcode(z80, (char *)"RES0_xHL", (char *)"Reset bit 0 of (HL)");
-            I = RdZ80(z80, z80->registers.HL); M_RES(z80, 0, I); WrZ80(z80,z80->registers.HL, I); break; 
+            I = RdZ80(memory, z80->registers.HL); M_RES(z80, 0, I); WrZ80(memory,z80->registers.HL, I); break; 
         
         case RES1_A:      debug_opcode(z80, (char *)"RES1_A", (char *)"Reset bit 1 of A");
             M_RES_H(z80, 1, z80->registers.AF); break;
@@ -471,7 +471,7 @@ static void z80_exec_extended_CB(struct z80* z80)
         case RES1_L:      debug_opcode(z80, (char *)"RES1_L", (char *)"Reset bit 1 of L");
             M_RES_L(z80, 1, z80->registers.HL); break;
         case RES1_xHL:      debug_opcode(z80, (char *)"RES1_xHL", (char *)"Reset bit 1 of (HL)");
-            I = RdZ80(z80, z80->registers.HL); M_RES(z80, 1, I); WrZ80(z80,z80->registers.HL, I); break; 
+            I = RdZ80(memory, z80->registers.HL); M_RES(z80, 1, I); WrZ80(memory,z80->registers.HL, I); break; 
         
         case RES2_A:      debug_opcode(z80, (char *)"RES2_A", (char *)"Reset bit 2 of A");
             M_RES_H(z80, 2, z80->registers.AF); break;
@@ -488,7 +488,7 @@ static void z80_exec_extended_CB(struct z80* z80)
         case RES2_L:      debug_opcode(z80, (char *)"RES2_L", (char *)"Reset bit 2 of L");
             M_RES_L(z80, 2, z80->registers.HL); break;
         case RES2_xHL:      debug_opcode(z80, (char *)"RES2_xHL", (char *)"Reset bit 2 of (HL)");
-            I = RdZ80(z80, z80->registers.HL); M_RES(z80, 2, I); WrZ80(z80,z80->registers.HL, I); break; 
+            I = RdZ80(memory, z80->registers.HL); M_RES(z80, 2, I); WrZ80(memory,z80->registers.HL, I); break; 
         
         case RES3_A:      debug_opcode(z80, (char *)"RES3_A", (char *)"Reset bit 3 of A");
             M_RES_H(z80, 3, z80->registers.AF); break;
@@ -505,7 +505,7 @@ static void z80_exec_extended_CB(struct z80* z80)
         case RES3_L:      debug_opcode(z80, (char *)"RES3_L", (char *)"Reset bit 3 of L");
             M_RES_L(z80, 3, z80->registers.HL); break;
         case RES3_xHL:      debug_opcode(z80, (char *)"RES3_xHL", (char *)"Reset bit 3 of (HL)");
-            I = RdZ80(z80, z80->registers.HL); M_RES(z80, 3, I); WrZ80(z80,z80->registers.HL, I); break; 
+            I = RdZ80(memory, z80->registers.HL); M_RES(z80, 3, I); WrZ80(memory,z80->registers.HL, I); break; 
         
         case RES4_A:      debug_opcode(z80, (char *)"RES4_A", (char *)"Reset bit 4 of A");
             M_RES_H(z80, 4, z80->registers.AF); break;
@@ -522,7 +522,7 @@ static void z80_exec_extended_CB(struct z80* z80)
         case RES4_L:      debug_opcode(z80, (char *)"RES4_L", (char *)"Reset bit 4 of L");
             M_RES_L(z80, 4, z80->registers.HL); break;
         case RES4_xHL:      debug_opcode(z80, (char *)"RES4_xHL", (char *)"Reset bit 4 of (HL)");
-            I = RdZ80(z80, z80->registers.HL); M_RES(z80, 4, I); WrZ80(z80,z80->registers.HL, I); break; 
+            I = RdZ80(memory, z80->registers.HL); M_RES(z80, 4, I); WrZ80(memory,z80->registers.HL, I); break; 
         
         case RES5_A:      debug_opcode(z80, (char *)"RES5_A", (char *)"Reset bit 5 of A");
             M_RES_H(z80, 5, z80->registers.AF); break;
@@ -539,7 +539,7 @@ static void z80_exec_extended_CB(struct z80* z80)
         case RES5_L:      debug_opcode(z80, (char *)"RES5_L", (char *)"Reset bit 5 of L");
             M_RES_L(z80, 5, z80->registers.HL); break;
         case RES5_xHL:      debug_opcode(z80, (char *)"RES5_xHL", (char *)"Reset bit 5 of (HL)");
-            I = RdZ80(z80, z80->registers.HL); M_RES(z80, 5, I); WrZ80(z80,z80->registers.HL, I); break; 
+            I = RdZ80(memory, z80->registers.HL); M_RES(z80, 5, I); WrZ80(memory,z80->registers.HL, I); break; 
         
         case RES6_A:      debug_opcode(z80, (char *)"RES6_A", (char *)"Reset bit 6 of A");
             M_RES_H(z80, 6, z80->registers.AF); break;
@@ -556,7 +556,7 @@ static void z80_exec_extended_CB(struct z80* z80)
         case RES6_L:      debug_opcode(z80, (char *)"RES6_L", (char *)"Reset bit 6 of L");
             M_RES_L(z80, 6, z80->registers.HL); break;
         case RES6_xHL:      debug_opcode(z80, (char *)"RES6_xHL", (char *)"Reset bit 6 of (HL)");
-            I = RdZ80(z80, z80->registers.HL); M_RES(z80, 6, I); WrZ80(z80,z80->registers.HL, I); break; 
+            I = RdZ80(memory, z80->registers.HL); M_RES(z80, 6, I); WrZ80(memory,z80->registers.HL, I); break; 
         
         case RES7_A:      debug_opcode(z80, (char *)"RES7_A", (char *)"Reset bit 7 of A");
             M_RES_H(z80, 7, z80->registers.AF); break;
@@ -573,7 +573,7 @@ static void z80_exec_extended_CB(struct z80* z80)
         case RES7_L:      debug_opcode(z80, (char *)"RES7_L", (char *)"Reset bit 7 of L");
             M_RES_L(z80, 7, z80->registers.HL); break;
         case RES7_xHL:      debug_opcode(z80, (char *)"RES7_xHL", (char *)"Reset bit 7 of (HL)");
-            I = RdZ80(z80, z80->registers.HL); M_RES(z80, 7, I); WrZ80(z80,z80->registers.HL, I); break; 
+            I = RdZ80(memory, z80->registers.HL); M_RES(z80, 7, I); WrZ80(memory,z80->registers.HL, I); break; 
         
 	
 
@@ -585,7 +585,7 @@ static void z80_exec_extended_CB(struct z80* z80)
             printf
             (
                 "[Z80 %lX] Unrecognized instruction: CB %02X at PC=%04X\n",
-                (long)z80->User,OpZ80(z80, z80->registers.PC-1),z80->registers.PC-2
+                (long)z80->User,OpZ80(z80, memory, z80->registers.PC-1),z80->registers.PC-2
             );
         }
     }

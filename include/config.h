@@ -1,12 +1,15 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#define EMULATOR_WINDOW_TITLE "Z80 Emulator"
-#define Z80_MEMORY_SIZE 0xFFFF //0x100
+#define EMULATOR_WINDOW_TITLE "ZX80 Emulator"
+
+#define DEBUG_OPCODE 1
+
+#define ZX80_MEMORY_SIZE 0xFFFF //0x100
 #define Z80_PROGRAM_LOAD_ADDRESS 0X000
 #define ZX80_WIDTH 256 //32 x 8
 #define ZX80_HEIGHT 200 // 25 x 8
-//#define ZX80_HEIGHT 232 // 26 x 8
+#define ZX80_BORDER 40
 #define ZX80_WINDOW_MULTIPLIER 2
 
 
