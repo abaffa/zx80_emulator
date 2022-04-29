@@ -1,23 +1,45 @@
 #include <stdio.h>
 #include <conio.h>
 #include <stdlib.h>
-#include <windows.h>
+
 #include <chrono>
 #ifdef __linux__
 #include <time.h>
 #include <pthread.h> 
 #endif
 
+#define SDL_MAIN_HANDLED
 #include "SDL2/SDL.h"
 
 #include "z80.h"
 #include "zx80_keyboard.h"
 #include "zx80_memory.h"
 
-using namespace std::chrono;
+#if SERVER_WEB == 1
+#include "hw_web.h"
+#endif
+
+
+#if defined(_MSC_VER) || defined(__MINGW32__)
+#include <windows.h>
+#endif
 
 
 #define DEBUG_CYCLES 1
+
+//////////////////////////////////
+
+using namespace std;
+#include <string>
+#include <iostream>
+using std::cout;
+#include <fstream>
+using std::ifstream;
+using std::getline;
+using std::string;
+
+
+using namespace std::chrono;
 
 
 const unsigned int keyboard_map[ZX80_TOTAL_KEYS] = {
@@ -36,12 +58,38 @@ typedef enum zx_keyboard {
 	zxkey_backspace
 } ZX_Keyboard;
 
+
 char state = 0;
 unsigned short mem_offset = 0;
 int mem_follow = 0;
 char running = 1;
 
+#if SERVER_WEB == 1
+#include <queue>
+queue<struct client_key> keyboard_queue;
 
+HW_WEB hw_web;
+#endif
+
+
+unsigned char screenmap[25][32][8];
+
+void draw_bitmap(SDL_Renderer* renderer, int x, int y, unsigned char bitmap, int bit_y) {
+
+	unsigned short bit_x = 0;
+
+	for (bit_x = 0; bit_x < 8; bit_x++) {
+
+		if (((bitmap << bit_x) & 0x80) == 0x80) {
+			SDL_Rect r;
+			r.x = ((x * 8 * ZX80_WINDOW_MULTIPLIER) + (bit_x * ZX80_WINDOW_MULTIPLIER)) + ZX80_BORDER;
+			r.y = (y * 8 * ZX80_WINDOW_MULTIPLIER + bit_y * ZX80_WINDOW_MULTIPLIER) + ZX80_BORDER;
+			r.w = ZX80_WINDOW_MULTIPLIER;
+			r.h = ZX80_WINDOW_MULTIPLIER;
+			SDL_RenderFillRect(renderer, &r);
+		}
+	}
+}
 
 
 
@@ -180,219 +228,34 @@ void cpu_print(Z80& z80, struct zx80_memory* zx80_memory) {
 }
 
 
-
-void display_bit(SDL_Renderer* renderer, int x, int y, unsigned char b, int bit_y, char inverse) {
-	int bit_x = 0;
-	for (bit_x = 0; bit_x < 8; bit_x++) {
-		if (
-			((((b & 0xFF) << bit_x) & 0x80) == 0x80 && !inverse) ||
-			((((b & 0xFF) << bit_x) & 0x80) == 0x00 && inverse)
-			) {
-			SDL_Rect r;
-			r.x = ((x * 8 * ZX80_WINDOW_MULTIPLIER) + (bit_x * ZX80_WINDOW_MULTIPLIER)) + ZX80_BORDER;
-			r.y = (y * 8 * ZX80_WINDOW_MULTIPLIER + bit_y * ZX80_WINDOW_MULTIPLIER) + ZX80_BORDER;
-			r.w = ZX80_WINDOW_MULTIPLIER;
-			r.h = ZX80_WINDOW_MULTIPLIER;
-			SDL_RenderFillRect(renderer, &r);
-		}
-	}
-}
-
-
-
-
-int do_steps = 0;
-
-#ifdef __linux__
+#if defined(_MSC_VER) || defined(__MINGW32__)
+DWORD WINAPI run_thread(void *vargp)
+#else
 void *run_thread(void *vargp)
-#elif _MSC_VER        
-DWORD WINAPI run_thread(LPVOID vargp)
 #endif
 {
 
 	Z80 *z80 = (Z80*)vargp;
-	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-	cls(hConsole);
-
-	double deltaTime = 0;
-	double frame = 0;
-	double cpu_clk = 0;
-	double cpu = 0;
-
-	if (DEBUG_CYCLES) {
-		printf("0.0fMHz - 0\n");
-		printf("Opcode: \n\n\n");
-		cpu_print(*z80, z80->zx80_memory);
-	}
-
-	int iii = 0;
-	double speed = 3.0769230769231E-10;
-	//3.0769230769231E-7;
-
-	do_steps = 0;
-	int step = 0;
-
-	int do_breakpoint = 0;
-	unsigned char bp_opcode = 0xed;
-	unsigned char bp_opcode2 = 0x78;
-	unsigned short breakpoint = 0x65B; //0x194; //0x168; //0x0154; 143 // 141
-
-#ifdef __MINGW32__
-	struct timespec tstart = { 0,0 }, tend = { 0,0 };
-#elif _MSC_VER    
-	auto tstart = high_resolution_clock::now();
-	auto tend = high_resolution_clock::now();
-#endif 
 
 	while (running) {
-/*
-		LAST = NOW;
-		NOW = SDL_GetPerformanceCounter();
-
-		deltaTime = (double)((NOW - LAST)*1000 / (double)SDL_GetPerformanceFrequency() );
-		*/
 
 
-#ifdef __MINGW32__
-		clock_gettime(CLOCK_MONOTONIC, &tend);
-		deltaTime = ((double)tend.tv_sec + 1.0e-9*tend.tv_nsec) - ((double)tstart.tv_sec + 1.0e-9*tstart.tv_nsec);
-		clock_gettime(CLOCK_MONOTONIC, &tstart);
-#elif _MSC_VER        
-		tend = high_resolution_clock::now();
-		deltaTime = duration_cast<nanoseconds>(tend - tstart).count() * 1e-9;
-		tstart = high_resolution_clock::now();
-#endif 
-
-		frame += deltaTime;
-		cpu += deltaTime;
-		cpu_clk += deltaTime;
-
-			if ((z80->registers.IFF & IFF_HALT) == 0x0 &&
-			((!do_steps && cpu >= speed) || (do_steps && step))) {
-			cpu_exec(*z80, z80->zx80_memory); iii++;
-			cpu = 0;
-
-			step = 0;
-			//if(RdZ80(z80,0x4042) == 0x1c)
-			//if(do_breakpoint && z80->registers.HL ==0x4042)
-			//  do_steps = 1;
-
-
-			if (do_breakpoint && z80->registers.PC == breakpoint)
-				do_steps = 1;
-
-			//if(do_breakpoint && RdZ80(z80, z80->registers.PC) == bp_opcode
-			//&& RdZ80(z80, z80->registers.PC+1) == bp_opcode2)
-			//  do_steps = 1;
+		if ((z80->registers.IFF & IFF_HALT) == 0x0) {
+			cpu_exec(*z80, z80->zx80_memory);
 		}
 		else if (z80->registers.IFF & IFF_HALT) {
-			cpu = 0;
-			iii++;
 		}
 
-		if (frame >= 0.1) {
-
-			if (kbhit()) {
-				int key = getch();
-
-				if (key == (int)'b') {
-					do_breakpoint = !do_breakpoint;
-				}
-
-				if (key == (int)'s') {
-					do_steps = !do_steps;
-				}
-
-				if (key == (int)'r') {
-					do_steps = 0;
-				}
-
-				if (key == (int)'n') {
-					step = 1;
-				}
-
-				if (key == (int)'2') {
-					if (mem_offset + 0x10 < ZX80_MEMORY_SIZE)
-						mem_offset += 0x10;
-				}
-				if (key == (int)'1') {
-					if (mem_offset - 0x10 > 0)
-						mem_offset -= 0x10;
-				}
-				if (key == (int)'3') {
-					if (mem_offset + 0x100 < ZX80_MEMORY_SIZE)
-						mem_offset += 0x100;
-				}
-				if (key == (int)'4') {
-					if (mem_offset - 0x100 > 0)
-						mem_offset -= 0x100;
-				}
-				if (key == (int)'5') {
-					if (mem_offset + 0x1000 < ZX80_MEMORY_SIZE)
-						mem_offset += 0x1000;
-				}
-				if (key == (int)'6') {
-					if (mem_offset - 0x1000 > 0)
-						mem_offset -= 0x1000;
-				}
-				if (key == (int)'7') {
-					speed /= 10;
-				}
-				if (key == (int)'8') {
-					if (speed < 1)
-						speed *= 10;
-					else if (speed > 1)
-						speed += 1;
-
-					if (speed > 2)
-						speed = 2;
-				}
-				if (key == (int)'9') {
-					mem_follow = !mem_follow;
-				}
-
-				if (key == (int)'0')
-					return NULL;
-			}
-
-			if (DEBUG_CYCLES) {
-				//cls(hConsole);
-
-				COORD pos = { 0, 0 };
-				SetConsoleCursorPosition(hConsole, pos);
-				printf("                                                                                                                                                      \r\n");
-				printf("                                                                                                                                                      \n");
-				printf("                                                                                                                                                      \n");
-				SetConsoleCursorPosition(hConsole, pos);
-				printf("%.3fMHz - %g\n", ((float)iii) / 1000000, speed);
-				printf("%s", z80->last_op_desc);
-				cpu_print(*z80, z80->zx80_memory);
-			}
-			frame = 0;
-
-		}
 
 		if (z80->registers.IFF & IFF_HALT) {
 			z80->IntZ80(z80->zx80_memory, INT_IRQ);
 			z80->registers.IFF |= IFF_1;
 			z80->IntZ80(z80->zx80_memory, INT_IRQ);
 		}
-
-
-		if (cpu_clk >= 1) {
-			iii = 0;
-			cpu_clk = 0;
-		}
 	}
 
 	return NULL;
 }
-
-
-
-
-
-
 
 
 int main(int argc, char** argv)
@@ -433,6 +296,9 @@ int main(int argc, char** argv)
 		return -1;
 	}
 
+#if SERVER_WEB == 1
+	hw_web.start_server(&keyboard_queue);
+#endif
 
 	struct zx80_keyboard zx80_keyboard;
 	struct zx80_memory zx80_memory;
@@ -456,9 +322,8 @@ int main(int argc, char** argv)
 	///////////////////////////////////////////////////////////////////////////
 
 	z80.z80_reset();
-	
-	z80.zx80_memory = &zx80_memory;
 	zx80_keyboard_set_map(&zx80_keyboard, keyboard_map);
+	z80.zx80_memory = &zx80_memory;
 
 	SDL_Init(SDL_INIT_EVERYTHING);
 	SDL_Window* window = SDL_CreateWindow(
@@ -470,22 +335,21 @@ int main(int argc, char** argv)
 		SDL_WINDOW_SHOWN
 	);
 
-	
+	//TTF_Init();
+	//TTF_Font* sans = TTF_OpenFont("arial.ttf", 24); //this opens a font style and sets a size
 
 	SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 	Uint64 NOW = SDL_GetPerformanceCounter();
 	Uint64 LAST = 0;
 
-#if defined(_MSC_VER) || defined(__MINGW32__)    
+
+#if defined(_MSC_VER) || defined(__MINGW32__)        
 	DWORD tid;
 	HANDLE myHandle = CreateThread(0, 0, run_thread, reinterpret_cast<void*>(&z80), 0, &tid);
 #else
 	pthread_t tid;
 	pthread_create(&tid, NULL, run_thread, (void *)&zx80_computer);
 #endif
-
-
-
 
 	while (1) {
 
@@ -503,9 +367,11 @@ int main(int argc, char** argv)
 
 
 			case SDL_QUIT:
+				running = 0;
 				goto out;
 				break;
 
+#if SERVER_WEB == 0
 			case SDL_KEYDOWN: {
 				int key = event.key.keysym.sym;
 
@@ -527,6 +393,7 @@ int main(int argc, char** argv)
 
 
 					//
+
 					if (zx80_keyboard_is_down(&zx80_keyboard, zxkey_a))
 						z80.PORT_FDFEh = ~(z80.PORT_FEFEh & 0x01);
 
@@ -541,6 +408,7 @@ int main(int argc, char** argv)
 
 					if (zx80_keyboard_is_down(&zx80_keyboard, zxkey_g))
 						z80.PORT_FDFEh = ~(z80.PORT_FEFEh & 0x10);
+
 
 					//
 					if (zx80_keyboard_is_down(&zx80_keyboard, zxkey_q))
@@ -693,6 +561,7 @@ int main(int argc, char** argv)
 						z80.PORT_FEFEh |= 0x10;
 
 					//
+
 					if (zx80_keyboard_is_down(&zx80_keyboard, zxkey_a))
 						z80.PORT_FDFEh |= 0x01;
 
@@ -843,75 +712,236 @@ int main(int argc, char** argv)
 				}
 			}
 							break;
+
+#endif
 			}
+
 		}
 
+#if SERVER_WEB == 1
+
+		if (!keyboard_queue.empty()) {
+			struct client_key k = keyboard_queue.front();
+			keyboard_queue.pop();
+
+			if (k.key == 'z')
+				z80.PORT_FEFEh = ~(z80.PORT_FEFEh & 0x02);
+
+			if (k.key == 'x')
+				z80.PORT_FEFEh = ~(z80.PORT_FEFEh & 0x04);
+
+			if (k.key == 'c')
+				z80.PORT_FEFEh = ~(z80.PORT_FEFEh & 0x08);
+
+			if (k.key == 'v')
+				z80.PORT_FEFEh = ~(z80.PORT_FEFEh & 0x10);
 
 
+			//
+
+			if (k.key == 'a')
+				z80.PORT_FDFEh = ~(z80.PORT_FEFEh & 0x01);
+
+			if (k.key == 's')
+				z80.PORT_FDFEh = ~(z80.PORT_FEFEh & 0x02);
+
+			if (k.key == 'd')
+				z80.PORT_FDFEh = ~(z80.PORT_FEFEh & 0x04);
+
+			if (k.key == 'f')
+				z80.PORT_FDFEh = ~(z80.PORT_FEFEh & 0x08);
+
+			if (k.key == 'g')
+				z80.PORT_FDFEh = ~(z80.PORT_FEFEh & 0x10);
+
+
+			//
+			if (k.key == 'q')
+				z80.PORT_FBFEh = ~(z80.PORT_FEFEh & 0x01);
+
+			if (k.key == 'w')
+				z80.PORT_FBFEh = ~(z80.PORT_FEFEh & 0x02);
+
+			if (k.key == 'e')
+				z80.PORT_FBFEh = ~(z80.PORT_FEFEh & 0x04);
+
+			if (k.key == 'r')
+				z80.PORT_FBFEh = ~(z80.PORT_FEFEh & 0x08);
+
+			if (k.key == 't')
+				z80.PORT_FBFEh = ~(z80.PORT_FEFEh & 0x10);
+
+			//
+			if (k.key == '1')
+				z80.PORT_F7FEh = ~(z80.PORT_FEFEh & 0x01);
+
+			if (k.key == '2')
+				z80.PORT_F7FEh = ~(z80.PORT_FEFEh & 0x02);
+
+			if (k.key == '3')
+				z80.PORT_F7FEh = ~(z80.PORT_FEFEh & 0x04);
+
+			if (k.key == '4')
+				z80.PORT_F7FEh = ~(z80.PORT_FEFEh & 0x08);
+
+			if (k.key == '5')
+				z80.PORT_F7FEh = ~(z80.PORT_FEFEh & 0x10);
+
+			//
+			if (k.key == '0')
+				z80.PORT_EFFEh = ~(z80.PORT_FEFEh & 0x01);
+
+			if (k.key == '9')
+				z80.PORT_EFFEh = ~(z80.PORT_FEFEh & 0x02);
+
+			if (k.key == '8')
+				z80.PORT_EFFEh = ~(z80.PORT_FEFEh & 0x04);
+
+			if (k.key == '7')
+				z80.PORT_EFFEh = ~(z80.PORT_FEFEh & 0x08);
+
+			if (k.key == '6')
+				z80.PORT_EFFEh = ~(z80.PORT_FEFEh & 0x10);
+
+			//
+			if (k.key == 'p')
+				z80.PORT_DFFEh = ~(z80.PORT_FEFEh & 0x01);
+
+			if (k.key == 'o')
+				z80.PORT_DFFEh = ~(z80.PORT_FEFEh & 0x02);
+
+			if (k.key == 'i')
+				z80.PORT_DFFEh = ~(z80.PORT_FEFEh & 0x04);
+
+			if (k.key == 'u')
+				z80.PORT_DFFEh = ~(z80.PORT_FEFEh & 0x08);
+
+			if (k.key == 'y')
+				z80.PORT_DFFEh = ~(z80.PORT_FEFEh & 0x10);
+
+			//
+			if (k.key == '\n' || k.key == '\r')
+				z80.PORT_BFFEh = ~(z80.PORT_FEFEh & 0x01);
+
+			if (k.key == 'l')
+				z80.PORT_BFFEh = ~(z80.PORT_FEFEh & 0x02);
+
+			if (k.key == 'k')
+				z80.PORT_BFFEh = ~(z80.PORT_FEFEh & 0x04);
+
+			if (k.key == 'j')
+				z80.PORT_BFFEh = ~(z80.PORT_FEFEh & 0x08);
+
+			if (k.key == 'h')
+				z80.PORT_BFFEh = ~(z80.PORT_FEFEh & 0x10);
+
+			//
+			if (k.key == ' ')
+				z80.PORT_7FFEh = ~(z80.PORT_FEFEh & 0x01);
+
+			if (k.key == '.')
+				z80.PORT_7FFEh = ~(z80.PORT_FEFEh & 0x02);
+
+			if (k.key == 'm')
+				z80.PORT_7FFEh = ~(z80.PORT_FEFEh & 0x04);
+
+			if (k.key == 'n')
+				z80.PORT_7FFEh = ~(z80.PORT_FEFEh & 0x08);
+
+			if (k.key == 'b')
+				z80.PORT_7FFEh = ~(z80.PORT_FEFEh & 0x10);
+
+			if (k.shift == 1)
+				z80.PORT_FEFEh = z80.PORT_FEFEh & 0xFE;
+
+			if (k.key == (char)8) {
+				z80.PORT_EFFEh = ~(z80.PORT_FEFEh & 0x01);
+				z80.PORT_FEFEh = z80.PORT_FEFEh & 0xFE;
+			}
+
+
+			//printf("key_down %x\t%x\n",z80.PORT_FEFEh);
+
+
+		}
+#endif
 
 
 		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 0);
 		SDL_RenderClear(renderer);
 		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
 
-
-
-
-
-		unsigned short i = 0;
-		int y = 0;
-		int x = 0;
-
+		unsigned short x;
+		unsigned short y;
+		unsigned short bit_y;
+		unsigned short  ka;
 
 		unsigned short vram = 0x400C;
+		unsigned short char_pixel_base = 0x0E00;
 
 		vram = WORD(z80.RdZ80(&zx80_memory, vram), z80.RdZ80(&zx80_memory, vram + 1));
 
+		bool refresh = false;
 
-		for (i = 0; i < 25; i++) {
+		for (y = 0; y < 25; y++) {
 
-			while (z80.RdZ80(&zx80_memory, vram) != 0x76) {
+			for (x = 0; x < 32 && z80.RdZ80(&zx80_memory, vram) != 0x76; x++) {
+
+
 				unsigned char keymap_code = z80.RdZ80(&zx80_memory, vram);
-				int is_inversed = (keymap_code & 0x80) != 0;
-				int keymap_address = 0x0E00 + (keymap_code & 0x7F) * 8;
+				unsigned char is_inversed = (keymap_code & 0x80) != 0;
+				unsigned short keymap_address = char_pixel_base + (keymap_code & 0x7F) * 8;
 
-				int bit_y = 0;
-				int ka;
+				bit_y = 0;
+
 				for (ka = keymap_address; ka < keymap_address + 8; ka++) {
-					display_bit(renderer, x, y, z80.RdZ80(&zx80_memory, ka), bit_y, is_inversed);
-					//printf("%04x\t%02x\n", ka, RdZ80(&z80, ka));
+
+					unsigned char bm = z80.RdZ80(&zx80_memory, ka);
+					unsigned char bitmap = !is_inversed ? bm & 0xFF : (~bm) & 0xFF;
+
+					draw_bitmap(renderer, x, y, bitmap, bit_y);
+
+					refresh |= (screenmap[y][x][bit_y] != bitmap);
+					screenmap[y][x][bit_y] = bitmap;
+
 					bit_y++;
 				}
-				/*
-				for(bit_y = 0; bit_y < 8; bit_y++){
 
-				if((keymap_code & 0x80))
-				display_bit(renderer,  x, y, 0x0E00 + (keymap_code & 0x7F), bit_y, 1);
-				else
-				display_bit(renderer,  x, y, 0x0E00 + keymap_code, bit_y, 0);
-
-
-
-				}
-				*/
-				//printf("%d\t%d\t%02x   %04x  %d\n", x, y, keymap_code & 0x7F, 0x0E00 + (keymap_code & 0x7F), (keymap_code & 0x80) != 0 );
 				vram++;
-				x++;
-
-				if (x >= 32)
-					break;
 			}
-			//printf("76\n");
+			if (x < 32) memset(screenmap[y][x], 0, sizeof(unsigned char) * (32 - x) * 8);
+
 			vram++;
-			y++;
-			x = 0;
 		}
-		//printf("#############\n");
-		//return;
 
 		SDL_RenderPresent(renderer);
 
+#if SERVER_WEB == 1
+		if (refresh) {
+			string str = "";
+			for (y = 0; y < 25; y++) {
+				int bit_y = 0;
+				for (bit_y = 0; bit_y < 8; bit_y++) {
+					for (x = 0; x < 32; x++) {
+
+						if (screenmap[y][x][bit_y] > 0)
+							str.append("[" + std::to_string(x) + "," + std::to_string(y) + "," + std::to_string(bit_y) + "," + std::to_string((unsigned int)screenmap[y][x][bit_y]) + "],");
+					}
+				}
+			}
+
+
+			if (str.size() > 0) {
+				str.pop_back();
+
+				hw_web.line(str, 0);
+			}
+		}
+#endif
+
+
 	}
+
 
 out:
 	SDL_DestroyWindow(window);

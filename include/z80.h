@@ -2,10 +2,14 @@
 #define Z80_H
 
 #include "config.h"
-//#include "z80_memory.h"
+#include "zx80_memory.h"
 #include "z80_registers.h"
 #include <stddef.h>
 
+
+
+
+using namespace std;
                                /* LoopZ80() may return:      */
 #define INT_RST00   0x00C7     /* RST 00h                    */
 #define INT_RST08   0x00CF     /* RST 08h                    */
@@ -38,15 +42,15 @@
 #define IFF_EI      0x20       /* 1: EI pending              */
 #define IFF_HALT    0x80       /* 1: CPU HALTed              */
 
-
-struct z80
+class Z80
 {
-    //struct z80_memory memory;
+public:
+    //struct zx80_memory memory;
     struct z80_registers registers;
 
-    int IPeriod,ICount; /* Set IPeriod to number of CPU cycles */
+	short IPeriod,ICount; /* Set IPeriod to number of CPU cycles */
                     /* between calls to LoopZ80()          */
-    int IBackup;        /* Private, don't touch                */
+	short IBackup;        /* Private, don't touch                */
     unsigned short IRequest;      /* Set to address of pending IRQ       */
     unsigned char IAutoReset;    /* Set to 1 to autom. reset IRequest   */
     unsigned char TrapBadOps;    /* Set to 1 to warn of illegal opcodes */
@@ -64,15 +68,48 @@ struct z80
     unsigned char PORT_DFFEh;// = 0x0;
     unsigned char PORT_BFFEh;// = 0x0;
     unsigned char PORT_7FFEh;// = 0x0;
+
+	struct zx80_memory *zx80_memory;
+
+	void z80_init();
+	void z80_exec(struct zx80_memory* zx80_memory);
+	void z80_reset();
+
+	unsigned char RdZ80(struct zx80_memory* zx80_memory, unsigned short Address);
+	void WrZ80(struct zx80_memory* zx80_memory, unsigned short Address, unsigned char V);
+
+	void IntZ80(struct zx80_memory* zx80_memory, unsigned short Vector);
+	void JumpZ80(unsigned short PC);
+
+	unsigned char InZ80(unsigned short Port);
+
+	//void OutZ80(unsigned short Port, unsigned char Value);
+	void OutZ80(struct zx80_memory* zx80_memory, unsigned short Port, unsigned char Value);
+
+private:
+	unsigned char OpZ80(struct zx80_memory* zx80_memory, unsigned short A);
+	unsigned short LoopZ80();
+
+	void debug_opcode(char *op, char *desc);
+	void debug_opcode_reg_word(struct zx80_memory* zx80_memory, char *op, char *desc);
+	void debug_opcode_reg_byte(struct zx80_memory* zx80_memory, char *op, char *desc);
+	void debug_opcode_reg_byte_byte(struct zx80_memory* zx80_memory, char *op, char *desc);
+	void disassembly_current_opcode(struct zx80_memory* zx80_memory, unsigned char current_opcode);
+
+
+	void z80_exec_main_code(unsigned char opcode, struct zx80_memory* zx80_memory);
+	void z80_exec_extended_CB(struct zx80_memory* zx80_memory);
+	void z80_exec_extended_DD(struct zx80_memory* zx80_memory);
+	void z80_exec_extended_ED(struct zx80_memory* zx80_memory);
+	void z80_exec_extended_FD(struct zx80_memory* zx80_memory);
+
+	void z80_exec_extended_DDCB(struct zx80_memory* zx80_memory);
+	void z80_exec_extended_FDCB(struct zx80_memory* zx80_memory);
 };
 
-void z80_init(struct z80* z80);
-void z80_exec(struct z80* z80, unsigned char* memory);
-void z80_reset(struct z80 *z80);
 
-unsigned char RdZ80(unsigned char* memory, unsigned short Address);
-void WrZ80(unsigned char* memory, unsigned short Address, unsigned char V);
-void IntZ80(struct z80* z80, unsigned char* memory, unsigned short Vector);
-void JumpZ80(struct z80* z80, unsigned short PC);
+
+
+
 
 #endif

@@ -16,7 +16,7 @@ enum Codes
  OR_B,		    OR_C,		      OR_D,		      OR_E,		    OR_H,		  OR_L,		  OR_xHL,		    OR_A,		  CP_B,			  CP_C,		      CP_D,	    	  CP_E,		  CP_H,		  CP_L,		  CP_xHL,		  CP_A,		
  RET_NZ,	  	POP_BC,		    JP_NZ,	    	JP,		      CALL_NZ,	PUSH_BC,	ADD_BYTE,		  RST00,		RET_Z,			RET,		      JP_Z,		      PFX_CB,		CALL_Z,		CALL,		  ADC_BYTE,		RST08,		
  RET_NC,	  	POP_DE,		    JP_NC,		    OUTA,		    CALL_NC,	PUSH_DE,	SUB_BYTE,		  RST10,		RET_C,			EXX,		      JP_C,		      INA,		  CALL_C,		PFX_DD,		SBC_BYTE,		RST18,		
- RET_PO,	  	POP_HL,		    JP_PO,		    EX_xSP_HL,  CALL_PO,	PUSH_HL,	AND_BYTE,		  RST20,		RET_PE,			LD_PC_HL,		  JP_PE,	    	EX_DE_HL,	CALL_PE,	PFX_ED,		XOR_BYTE,		RST28,		
+ RET_PO,	  	POP_HL,		    JP_PO,		    EX_xSP_HL, CALL_PO,	PUSH_HL,	AND_BYTE,		  RST20,		RET_PE,			LD_PC_HL,		  JP_PE,	    	EX_DE_HL,	CALL_PE,	PFX_ED,		XOR_BYTE,		RST28,		
  RET_P,	    	POP_AF,		    JP_P,	      	DI,		      CALL_P,		PUSH_AF,	OR_BYTE,		  RST30,		RET_M,			LD_SP_HL,		  JP_M,	    	  EI,		    CALL_M,		PFX_FD,		CP_BYTE,		RST38
 };  
 
@@ -82,7 +82,7 @@ enum CodesED
 
 #define M_ADD(cpu, b)      \
   J = MSB(cpu->registers.AF) + b;     \
-  SET_LSB(cpu->registers.AF,           \
+  SET_LSB(cpu->registers.AF,          \
     (~(MSB(cpu->registers.AF) ^ b) & (b ^ LSB(J)) & 0x80 ? V_FLAG : 0) | \
     MSB(J) | ZSTable[LSB(J)] |                        \
     ((MSB(cpu->registers.AF) ^ b ^ LSB(J)) & H_FLAG));               \
@@ -90,7 +90,7 @@ enum CodesED
 
 #define M_ADC(cpu, Rg)      \
   J = MSB(cpu->registers.AF) + Rg + (LSB(cpu->registers.AF) & C_FLAG); \
-  SET_LSB(cpu->registers.AF,                            \
+  SET_LSB(cpu->registers.AF,                           \
     (~(MSB(cpu->registers.AF) ^ Rg) & (Rg ^ LSB(J)) & 0x80 ? V_FLAG : 0) | \
     MSB(J) | ZSTable[LSB(J)] |              \
     ((MSB(cpu->registers.AF) ^ Rg ^ LSB(J)) & H_FLAG));     \
@@ -98,7 +98,7 @@ enum CodesED
 
 #define M_ADDW(cpu, Rg1, Rg2) \
   J = (cpu->registers.Rg1 + cpu->registers.Rg2) & 0xFFFF; \
-  SET_LSB(cpu->registers.AF,                              \
+  SET_LSB(cpu->registers.AF,                             \
     (LSB(cpu->registers.AF) & ~(H_FLAG | N_FLAG | C_FLAG)) |                 \
     ((cpu->registers.Rg1 ^ cpu->registers.Rg2 ^ J) & 0x1000? H_FLAG : 0)|          \
     (((long)cpu->registers.Rg1 + (long)cpu->registers.Rg2) & 0x10000 ? C_FLAG : 0)); \
@@ -107,7 +107,7 @@ enum CodesED
 #define M_ADCW(cpu, Rg)      \
   I = LSB(cpu->registers.AF) & C_FLAG;  \
   J = (cpu->registers.HL + cpu->registers.Rg + I) & 0xFFFF;           \
-  SET_LSB(cpu->registers.AF,                                                   \
+  SET_LSB(cpu->registers.AF,                                                  \
     (((long)cpu->registers.HL + (long)cpu->registers.Rg + (long)I) & 0x10000 ? C_FLAG : 0) | \
     (~(cpu->registers.HL ^ cpu->registers.Rg) & (cpu->registers.Rg ^ J) & 0x8000 ? V_FLAG : 0) |      \
     ((cpu->registers.HL ^ cpu->registers.Rg ^ J) & 0x1000 ? H_FLAG : 0) |                  \
@@ -118,7 +118,7 @@ enum CodesED
 
 #define M_SUB(cpu, Rg)      \
   J = MSB(cpu->registers.AF) - Rg;    \
-  SET_LSB(cpu->registers.AF,            \
+  SET_LSB(cpu->registers.AF,           \
     ((MSB(cpu->registers.AF) ^ Rg) & ((MSB(cpu->registers.AF) ^ LSB(J)) & 0x80 ? V_FLAG : 0) | \
     N_FLAG | -MSB(J) | ZSTable[LSB(J)] |                      \
     ((MSB(cpu->registers.AF) ^ Rg ^ LSB(J)) & H_FLAG)));                     \
@@ -126,7 +126,7 @@ enum CodesED
 
 #define M_SBC(cpu, Rg)      \
   J = MSB(cpu->registers.AF) - Rg - (LSB(cpu->registers.AF) & C_FLAG); \
-  SET_LSB(cpu->registers.AF,                            \
+  SET_LSB(cpu->registers.AF,                           \
     ((MSB(cpu->registers.AF) ^ Rg) & (MSB(cpu->registers.AF) ^ LSB(J)) & 0x80 ? V_FLAG : 0) | \
     N_FLAG | -MSB(J) | ZSTable[LSB(J)] |      \
     ((MSB(cpu->registers.AF) ^ Rg ^ LSB(J)) & H_FLAG));     \
@@ -135,7 +135,7 @@ enum CodesED
 #define M_SBCW(cpu, Rg)      \
   I = LSB(cpu->registers.AF) & C_FLAG;               \
   J = (cpu->registers.HL - cpu->registers.Rg - I) & 0xFFFF;     \
-  SET_LSB(cpu->registers.AF,                                    \
+  SET_LSB(cpu->registers.AF,                                   \
     N_FLAG |                                                    \
     (((long)cpu->registers.HL - (long)cpu->registers.Rg - (long)I) & 0x10000 ? C_FLAG : 0)| \
     ((cpu->registers.HL ^ cpu->registers.Rg) & (cpu->registers.HL ^ J) & 0x8000 ? V_FLAG : 0)|        \
@@ -146,7 +146,7 @@ enum CodesED
 /*
 #define M_INC(cpu, Rg)       \
   Rg++;                 \
-  SET_LSB(cpu->registers.AF,             \
+  SET_LSB(cpu->registers.AF,            \
             (LSB(cpu->registers.AF) & C_FLAG) | \
             ZSTable[Rg] | \
             (Rg == 0x80 ? V_FLAG : 0) | \
@@ -155,7 +155,7 @@ enum CodesED
 
 #define M_INC_H(cpu, Rg)    \
   SET_MSB(Rg, MSB(Rg)+1);                   \
-  SET_LSB(cpu->registers.AF,             \
+  SET_LSB(cpu->registers.AF,            \
             (LSB(cpu->registers.AF) & C_FLAG) | \
             ZSTable[MSB(Rg)] | \
             (Rg == 0x80 ? V_FLAG : 0) | \
@@ -163,7 +163,7 @@ enum CodesED
 
 #define M_INC_L(cpu, Rg)    \
   SET_LSB(Rg, LSB(Rg)+1);                   \
-  SET_LSB(cpu->registers.AF,             \
+  SET_LSB(cpu->registers.AF,            \
             (LSB(cpu->registers.AF) & C_FLAG) | \
             ZSTable[LSB(Rg)] | \
             (Rg == 0x80 ? V_FLAG : 0) | \
@@ -172,7 +172,7 @@ enum CodesED
 /*
 #define M_DEC(cpu, Rg)       \
   Rg--;                 \
-  SET_LSB(cpu->registers.AF,             \
+  SET_LSB(cpu->registers.AF,            \
     (N_FLAG | \
     (LSB(cpu->registers.AF) & C_FLAG) | \
     ZSTable[Rg] | \
@@ -182,7 +182,7 @@ enum CodesED
 
 #define M_DEC_H(cpu, Rg)       \
   SET_MSB(Rg, MSB(Rg)-1);                 \
-  SET_LSB(cpu->registers.AF,             \
+  SET_LSB(cpu->registers.AF,            \
     (N_FLAG | \
     (LSB(cpu->registers.AF) & C_FLAG) | \
     ZSTable[MSB(Rg)] | \
@@ -191,7 +191,7 @@ enum CodesED
 
 #define M_DEC_L(cpu, Rg)       \
   SET_LSB(Rg, LSB(Rg)-1);                 \
-  SET_LSB(cpu->registers.AF,             \
+  SET_LSB(cpu->registers.AF,            \
     (N_FLAG | (LSB(cpu->registers.AF) & C_FLAG) | ZSTable[LSB(Rg)] | \
     (Rg == 0x7F ? V_FLAG : 0) | ((Rg & 0x0F) == 0x0F ? H_FLAG : 0)))
 
@@ -209,58 +209,58 @@ enum CodesED
 
 #define M_CP(cpu, Rg)       \
   J = MSB(cpu->registers.AF) - Rg;    \
-  SET_LSB(cpu->registers.AF,           \
+  SET_LSB(cpu->registers.AF,          \
     ((MSB(cpu->registers.AF) ^ Rg) & (MSB(cpu->registers.AF) ^ LSB(J)) & 0x80 ? V_FLAG : 0) | \
     N_FLAG | - MSB(J) | ZSTable[LSB(J)] |                       \
     ((MSB(cpu->registers.AF) ^ Rg ^ LSB(J)) & H_FLAG))
 
 #define M_CALL(cpu, mem)         \
-    SET_LSB(J, OpZ80(z80, mem, cpu->registers.PC)); \
-    SET_MSB(J, OpZ80(z80, mem, cpu->registers.PC)); \
-    WrZ80(mem, cpu->registers.SP - 1, MSB(cpu->registers.PC)); \
-    WrZ80(mem, cpu->registers.SP - 2, LSB(cpu->registers.PC)); \
+    SET_LSB(J, this->OpZ80(mem, cpu->registers.PC)); \
+    SET_MSB(J, this->OpZ80(mem, cpu->registers.PC)); \
+	this->WrZ80(mem, cpu->registers.SP - 1, MSB(cpu->registers.PC)); \
+    this->WrZ80(mem, cpu->registers.SP - 2, LSB(cpu->registers.PC)); \
     cpu->registers.SP -= 2; \
     cpu->registers.PC = J; \
-    JumpZ80(z80, J)
+    this->JumpZ80(J)
 
 #define M_RET(cpu, mem)         \
-    SET_LSB(cpu->registers.PC, RdZ80(mem, cpu->registers.SP));  \
-    SET_MSB(cpu->registers.PC, RdZ80(mem, cpu->registers.SP + 1));  \
+    SET_LSB(cpu->registers.PC, this->RdZ80(mem, cpu->registers.SP));  \
+    SET_MSB(cpu->registers.PC, this->RdZ80(mem, cpu->registers.SP + 1));  \
     cpu->registers.SP += 2; \
-    JumpZ80(z80, cpu->registers.PC)
+    this->JumpZ80( cpu->registers.PC)
 
 
 #define M_JR(cpu, mem)         \
-    cpu->registers.PC += (signed char)RdZ80(mem, cpu->registers.PC) + 1;  \
-    JumpZ80(z80, cpu->registers.PC)
+    cpu->registers.PC += (signed char)this->RdZ80(mem, cpu->registers.PC) + 1;  \
+    this->JumpZ80( cpu->registers.PC)
 
 #define M_JP(cpu, mem)         \
-    SET_LSB(J, OpZ80(cpu, mem, cpu->registers.PC));  \
-    SET_MSB(J, OpZ80(cpu, mem, cpu->registers.PC));    \
+    SET_LSB(J, this->OpZ80(mem, cpu->registers.PC));  \
+    SET_MSB(J, this->OpZ80(mem, cpu->registers.PC));    \
     cpu->registers.PC = J;          \
-    JumpZ80(z80, cpu->registers.PC)
+    this->JumpZ80( cpu->registers.PC)
 
 #define S(cpu, Fl) SET_LSB(cpu->registers.AF, LSB(cpu->registers.AF) | LSB(Fl))
 #define R(cpu, Fl) SET_LSB(cpu->registers.AF, LSB(cpu->registers.AF) & (~LSB(Fl)))
 
 #define M_RST(cpu, mem, Ad)      \
-  WrZ80(mem, cpu->registers.SP - 1, MSB(cpu->registers.PC)); \
-  WrZ80(mem, cpu->registers.SP - 2, LSB(cpu->registers.PC)); \
+  this->WrZ80(mem, cpu->registers.SP - 1, MSB(cpu->registers.PC)); \
+  this->WrZ80(mem, cpu->registers.SP - 2, LSB(cpu->registers.PC)); \
   cpu->registers.SP -= 2; \
   cpu->registers.PC = Ad; \
-  JumpZ80(z80, Ad)
+  this->JumpZ80( Ad)
 
 
 
 #define M_PUSH(cpu, mem, Rg)     \
-  WrZ80(mem, cpu->registers.SP - 1, MSB(cpu->registers.Rg)); \
-  WrZ80(mem, cpu->registers.SP - 2, LSB(cpu->registers.Rg)); \
+  this->WrZ80(mem, cpu->registers.SP - 1, MSB(cpu->registers.Rg)); \
+  this->WrZ80(mem, cpu->registers.SP - 2, LSB(cpu->registers.Rg)); \
   cpu->registers.SP -= 2
 
 
 #define M_POP(cpu, mem, Rg)      \
-  SET_LSB(cpu->registers.Rg, RdZ80(mem, cpu->registers.SP)); \
-  SET_MSB(cpu->registers.Rg, RdZ80(mem, cpu->registers.SP + 1)); \
+  SET_LSB(cpu->registers.Rg, this->RdZ80(mem, cpu->registers.SP)); \
+  SET_MSB(cpu->registers.Rg, this->RdZ80(mem, cpu->registers.SP + 1)); \
   cpu->registers.SP += 2 
 
 
@@ -446,8 +446,8 @@ enum CodesED
 #define M_RES_L(cpu, Bit,Rg) SET_LSB(Rg, LSB(Rg) & ~(1 << Bit))
 
 #define M_LDWORD(cpu, mem, Rg)  \
-    SET_WORD(Rg, RdZ80(mem, cpu->registers.PC),   \
-     RdZ80(mem, cpu->registers.PC + 1)); \
+    SET_WORD(Rg, this->RdZ80(mem, cpu->registers.PC),  \
+     this->RdZ80(mem, cpu->registers.PC + 1)); \
      cpu->registers.PC += 2
 
       

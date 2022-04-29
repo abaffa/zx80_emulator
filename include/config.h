@@ -1,9 +1,17 @@
 #ifndef CONFIG_H
 #define CONFIG_H
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
 
 #define EMULATOR_WINDOW_TITLE "ZX80 Emulator"
 
-#define DEBUG_OPCODE 1
+#define SERVER_WEB 1
+
+#define DEBUG_OPCODE 0
+#define DEBUG_LOG 0
+
 
 #define ZX80_MEMORY_SIZE 0xFFFF //0x100
 #define Z80_PROGRAM_LOAD_ADDRESS 0X000
@@ -20,4 +28,5 @@
 #define Z80_DEFAULT_SPRITE_HEIGHT 5
 
 #endif
+
 
