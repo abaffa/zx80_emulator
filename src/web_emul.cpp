@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <conio.h>
 #include <stdlib.h>
 
 #include <chrono>
@@ -53,51 +52,6 @@ HW_WEB hw_web;
 
 unsigned char screenmap[25][32][8];
 
-
-void cls(HANDLE hConsole)
-{
-	COORD coordScreen = { 0, 0 };    // home for the cursor
-	DWORD cCharsWritten;
-	CONSOLE_SCREEN_BUFFER_INFO csbi;
-	DWORD dwConSize;
-
-	// Get the number of character cells in the current buffer.
-	if (!GetConsoleScreenBufferInfo(hConsole, &csbi))
-	{
-		return;
-	}
-
-	dwConSize = csbi.dwSize.X * csbi.dwSize.Y;
-
-	// Fill the entire screen with blanks.
-	if (!FillConsoleOutputCharacter(hConsole,        // Handle to console screen buffer
-		(TCHAR)' ',      // Character to write to the buffer
-		dwConSize,       // Number of cells to write
-		coordScreen,     // Coordinates of first cell
-		&cCharsWritten)) // Receive number of characters written
-	{
-		return;
-	}
-
-	// Get the current text attribute.
-	if (!GetConsoleScreenBufferInfo(hConsole, &csbi))
-	{
-		return;
-	}
-
-	// Set the buffer's attributes accordingly.
-	if (!FillConsoleOutputAttribute(hConsole,         // Handle to console screen buffer
-		csbi.wAttributes, // Character attributes to use
-		dwConSize,        // Number of cells to set attribute
-		coordScreen,      // Coordinates of first cell
-		&cCharsWritten))  // Receive number of characters written
-	{
-		return;
-	}
-
-	// Put the cursor at its home coordinates.
-	SetConsoleCursorPosition(hConsole, coordScreen);
-}
 
 #define BYTE_TO_BINARY_PATTERN "%c%c%c%c%c%c%c%c"
 #define BYTE_TO_BINARY(byte)  \
@@ -241,7 +195,6 @@ int main(int argc, char** argv)
 	{
 		printf("Failed to open the file\n");
 		printf("Press any key to continue");
-		getch();
 		return -1;
 	}
 
@@ -294,7 +247,7 @@ int main(int argc, char** argv)
 	HANDLE myHandle = CreateThread(0, 0, run_thread, reinterpret_cast<void*>(&z80), 0, &tid);
 #else
 	pthread_t tid;
-	pthread_create(&tid, NULL, run_thread, (void *)&zx80_computer);
+	pthread_create(&tid, NULL, run_thread, (void *)&z80);
 #endif
 
 
